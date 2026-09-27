@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atelier Borji</title>
+<meta name="theme-color" content="#111827">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eceff3; --surface:#ffffff; --surface2:#f6f7f9; --line:#dfe3e8; --line2:#eef0f3;
+  --ink:#111827; --ink2:#4b5563; --ink3:#8a93a0;
+  --brand:#1f2937; --accent:#0f766e;
+  --red:#dc2626; --red-bg:#fef2f2; --red-line:#fecaca;
+  --sp-bg:#ecfdf8; --sp-line:#5eead4; --sp-ink:#115e59;
+  --radius:14px; --shadow:0 1px 2px rgba(17,24,39,.05),0 2px 8px rgba(17,24,39,.04);
+}
+/* لون ثابت لكل مرحلة */
+.st-new{--c:#64748b;--cbg:#f1f5f9}
+.st-queue{--c:#2563eb;--cbg:#dbeafe}
+.st-cut{--c:#ea580c;--cbg:#ffedd5}
+.st-waitsand{--c:#b45309;--cbg:#fef3c7}
+.st-sand{--c:#7c3aed;--cbg:#ede9fe}
+.st-ready{--c:#15803d;--cbg:#dcfce7}
+.st-done{--c:#334155;--cbg:#e2e8f0}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",system-ui,"Segoe UI",Tahoma,sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;display:inline-block}
+svg.ic{width:18px;height:18px;flex:none;vertical-align:-3px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ===== شريط الأدوار ===== */
+#rolebar{position:sticky;top:0;z-index:40;background:#111827;color:#e5e7eb;display:flex;align-items:center;gap:10px;padding:8px 14px;min-height:52px}
+.brand{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.brand b{font-family:Georgia,"Times New Roman",serif;font-weight:600;font-size:18px;letter-spacing:.5px;color:#fff;direction:ltr}
+.brand small{font-size:11px;color:#9ca3af;border:1px solid #374151;border-radius:99px;padding:1px 8px}
+.roles{display:flex;gap:4px;background:#1f2937;border-radius:10px;padding:3px;margin-inline-start:auto;overflow-x:auto;scrollbar-width:none}
+.roles::-webkit-scrollbar{display:none}
+.roles button{border:0;background:transparent;color:#cbd5e1;padding:6px 12px;border-radius:8px;white-space:nowrap;font-size:14px;font-weight:500;position:relative}
+.roles button.on{background:#fff;color:#111827}
+.roles .dot{position:absolute;top:4px;left:4px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.resetbtn{border:1px solid #374151;background:transparent;color:#e5e7eb;border-radius:10px;padding:6px 12px;font-size:13px;white-space:nowrap}
+.resetbtn:hover{background:#1f2937}
+@media(max-width:980px){.brand small,.rst-l{display:none}.resetbtn{padding:6px 9px}}
+@media(max-width:560px){#rolebar{padding:8px 10px;gap:6px}.brand b{font-size:15px}.roles button{padding:6px 9px;font-size:13px}}
+@media(max-width:400px){.brand{display:none}.roles{margin-inline-start:0}}
+
+/* ===== الحاويات ===== */
+#app{min-height:calc(100vh - 52px)}
+.phone{max-width:460px;margin:0 auto;background:var(--surface2);min-height:calc(100vh - 52px);display:flex;flex-direction:column;position:relative}
+@media(min-width:620px){.phone{margin:18px auto;min-height:calc(100vh - 88px);border-radius:26px;border:1px solid var(--line);box-shadow:0 10px 40px rgba(17,24,39,.10);overflow:hidden}}
+.phone-head{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;background:var(--surface);border-bottom:1px solid var(--line2)}
+.phone-head h1{font-size:19px;margin:0;font-weight:700}
+.phone-head .who{margin-inline-start:auto;font-size:12px;color:var(--ink3)}
+.phone-body{flex:1;padding:14px 14px 90px;display:flex;flex-direction:column;gap:14px}
+.bnav{position:sticky;bottom:0;display:flex;background:var(--surface);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:5;margin-top:auto}
+.bnav button{flex:1;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;font-size:12px;color:var(--ink3);border-radius:10px;position:relative}
+.bnav button svg.ic{width:22px;height:22px}
+.bnav button.on{color:var(--ink);font-weight:600}
+.bnav button.on svg.ic{stroke-width:2.4}
+.bnav .badge{position:absolute;top:2px;right:calc(50% - 20px)}
+
+.desk{padding:16px;max-width:1500px;margin:0 auto}
+.dtabs{display:flex;gap:4px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
+.dtabs button{border:0;background:transparent;padding:10px 14px;font-weight:500;color:var(--ink2);border-bottom:3px solid transparent;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.dtabs button.on{color:var(--ink);border-color:var(--ink);font-weight:700}
+.dgrid{display:grid;grid-template-columns:330px 1fr 300px;gap:16px;align-items:start}
+@media(max-width:1560px){.dgrid{grid-template-columns:320px 1fr}.dgrid>.col-l{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;align-items:start}}
+@media(max-width:1180px){.dgrid>.col-l{grid-template-columns:1fr}}
+@media(max-width:760px){.dgrid{grid-template-columns:minmax(0,1fr)}.desk{padding:12px}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.lines2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media(max-width:980px){.lines2{grid-template-columns:minmax(0,1fr)}}
+.wide{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+
+/* ===== عناصر عامة ===== */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
+.panel>h2,.sec-title{font-size:15px;margin:0 0 10px;font-weight:700;display:flex;align-items:center;gap:8px}
+.sec-title .cnt,.panel>h2 .cnt{font-size:12px;font-weight:600;color:var(--ink3);background:var(--line2);border-radius:99px;padding:0 8px}
+.sec-title .more{margin-inline-start:auto;font-size:13px;font-weight:500;color:var(--accent);background:none;border:0;padding:0}
+.muted{color:var(--ink3)}
+.small{font-size:13px}
+.empty{color:var(--ink3);font-size:14px;padding:10px;text-align:center;border:1px dashed var(--line);border-radius:12px}
+.row{display:flex;align-items:center;gap:8px}
+.grow{flex:1;min-width:0}
+.stack{display:flex;flex-direction:column;gap:10px}
+
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--cbg);color:var(--c);font-weight:600;font-size:12.5px;padding:2px 10px;border-radius:99px;white-space:nowrap}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;border-radius:6px;padding:1px 7px;white-space:nowrap}
+.tag.urgent{background:#111827;color:#fff}
+.tag.note{background:#e0f2fe;color:#075985}
+.tag.block{background:var(--red);color:#fff}
+.tag.old{background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db}
+.tag.glue{background:var(--sp-bg);color:var(--sp-ink);border:1px solid var(--sp-line);padding:1px 3px 1px 7px;gap:6px}
+.tag.glue .gbtn{border:1px solid var(--sp-line);background:#fff;color:var(--sp-ink);border-radius:5px;padding:0 7px;font-size:11.5px;font-weight:700;line-height:1.7}
+.tag.glue .gbtn:hover{background:var(--sp-ink);color:#fff}
+.badge{min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--red);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+
+/* ===== كارت الطلبية ===== */
+.ocard{background:var(--surface);border:1px solid var(--line);border-inline-start:5px solid var(--c);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;cursor:pointer;transition:transform .08s}
+.ocard:active{transform:scale(.995)}
+.ocard .in{padding:12px 14px}
+.ocard .top{display:flex;align-items:flex-start;gap:10px}
+.ocard .no{font-size:24px;font-weight:700;line-height:1.1;color:var(--ink)}
+.ocard .client{font-size:19px;font-weight:700;line-height:1.3}
+.ocard .meta{display:flex;flex-wrap:wrap;gap:4px 14px;color:var(--ink2);font-size:14px;margin-top:6px}
+.ocard .meta b{color:var(--ink);font-weight:600}
+.cbadge{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:7px;padding:0 7px 0 8px;font-size:.92em;font-weight:600;line-height:1.6;white-space:nowrap;vertical-align:middle}
+.cbadge i{width:11px;height:11px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.18)}
+.ocard .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.ocard.compact .in{padding:9px 12px}
+.ocard.compact .no{font-size:17px}
+.ocard.compact .client{font-size:15.5px}
+.ocard.compact .meta{font-size:13px;margin-top:2px}
+.ocard.blocked{border-color:var(--red-line);border-inline-start-color:var(--red);background:var(--red-bg)}
+.strip{background:var(--sp-bg);border-top:1px dashed var(--sp-line);color:var(--sp-ink);padding:8px 14px;font-size:14px;font-weight:600;display:flex;flex-direction:column;gap:3px}
+.strip div{display:flex;gap:7px;align-items:flex-start}
+.strip svg.ic{margin-top:3px}
+.ocard.compact .strip{padding:6px 12px;font-size:12.5px}
+.blockline{background:var(--red);color:#fff;padding:7px 14px;font-size:14px;font-weight:600;display:flex;gap:8px;align-items:center}
+
+/* ===== الزراير ===== */
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.btn.dark{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.dark:hover{background:#374151}
+.btn.sm{padding:4px 10px;font-size:13px;border-radius:8px}
+.btn.icon{padding:4px 7px}
+.btn.redo{border-color:var(--red-line);color:var(--red);background:#fff}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.big{width:100%;min-height:64px;border-radius:14px;font-size:20px;font-weight:700;border:0;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--c,#111827);color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.12)}
+.big svg.ic{width:24px;height:24px}
+.big:active{filter:brightness(.92)}
+.big.ghost{background:#fff;color:var(--red);border:2px solid var(--red);min-height:56px;font-size:18px}
+.big:disabled{background:#cbd5e1;color:#fff;box-shadow:none;cursor:not-allowed}
+.big.plain{background:#fff;color:var(--ink);border:2px solid var(--line)}
+
+/* ===== شاشة المشرف ===== */
+.slot{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.slot-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--c)}
+.slot-h .pulse{width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 0 0 0 var(--c);animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--c) 60%,transparent)}70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.slot .idle{color:var(--ink3);font-size:15px;padding:14px;text-align:center;background:var(--surface2);border-radius:12px}
+.waitline{display:flex;align-items:center;gap:8px;background:var(--cbg);color:var(--c);border-radius:10px;padding:7px 12px;font-size:14px;font-weight:600;cursor:pointer}
+.st-waitsand.waitline{--c:#b45309;--cbg:#fef3c7}
+.nextq{display:flex;flex-direction:column;gap:8px}
+/* طابور "مستنية تقشيط" بين القطع والتقشيط */
+.waitq{display:flex;flex-direction:column;gap:6px}
+.wrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--cbg);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:14.5px}
+.wrow .pos{width:22px;height:22px;border-radius:50%;background:#fff;color:var(--c);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.wrow .grow{min-width:120px}
+.wrow .since{font-size:12.5px;color:var(--c);font-weight:600;white-space:nowrap}
+.wrow .nx{font-size:11.5px;font-weight:700;color:#fff;background:var(--c);border-radius:6px;padding:0 6px;white-space:nowrap}
+.waitbox{background:var(--cbg);border-radius:10px;padding:8px 10px;margin-bottom:6px}
+.waitbox .wh{font-size:12.5px;font-weight:700;color:var(--c);display:flex;gap:6px;align-items:center}
+.waitbox .waitq{margin-top:6px}
+.waitbox .wrow{background:#fff;padding:6px 8px}
+.waitbox .wrow .pos{background:var(--cbg)}
+.solved{background:#ecfdf5;border:1px solid #86efac;color:#14532d;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;font-weight:600}
+.solved .grow b{font-size:22px}
+
+/* ===== البحث ===== */
+.search{position:relative}
+.search input{width:100%;border:2px solid var(--ink);border-radius:14px;padding:13px 46px 13px 14px;font-size:17px;background:#fff;outline:none}
+.search input:focus{box-shadow:0 0 0 4px rgba(17,24,39,.08)}
+.search svg.ic{position:absolute;right:15px;top:50%;transform:translateY(-50%);width:22px;height:22px;color:var(--ink2)}
+.answers{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.answer{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-inline-start:5px solid var(--c);border-radius:12px;padding:10px 12px;cursor:pointer}
+.answer .say{font-size:17px;font-weight:700;color:var(--c)}
+.answer .nm{font-size:13px;color:var(--ink2)}
+.answer .no{font-weight:700;font-size:16px;color:var(--ink3)}
+
+.alertbar{display:flex;flex-direction:column;gap:6px}
+.alertbar button{display:flex;align-items:center;gap:8px;border-radius:12px;padding:10px 12px;font-weight:600;font-size:14px;text-align:start;border:1px solid}
+.alertbar .r{background:var(--red);border-color:var(--red);color:#fff}
+.alertbar .n{background:#f1f5f9;border-color:#cbd5e1;color:#334155}
+
+/* الجاهزة */
+.readyrow{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px;cursor:pointer}
+.corner{min-width:54px;height:54px;border-radius:12px;background:var(--st-ready-bg,#dcfce7);color:#14532d;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;flex:none}
+.corner small{font-size:11px;font-weight:600}
+.corner b{font-size:26px;font-weight:700}
+.readyrow .client{font-weight:700;font-size:16px}
+.cornergrp h3{font-size:14px;margin:4px 0 8px;color:var(--ink2);display:flex;align-items:center;gap:8px}
+
+/* كارت الخط */
+.linecard .lh{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.linecard .lh h2{margin:0;font-size:17px}
+.linecard .mach{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--cbg);margin-bottom:6px;cursor:pointer;min-height:42px}
+.linecard .mach .lbl{font-size:12.5px;font-weight:700;color:var(--c);min-width:72px}
+.linecard .mach .v{font-weight:600;font-size:14.5px}
+.linecard .mach.free{background:var(--surface2);cursor:default}
+.linecard .mach.free .v{color:var(--ink3);font-weight:500}
+.qlist{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.qitem{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px;cursor:pointer}
+.qitem .pos{width:22px;height:22px;border-radius:50%;background:var(--line2);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.qitem.blocked{border-color:var(--red-line);background:var(--red-bg)}
+.qitem.dragging{opacity:.4}
+.qitem.over{box-shadow:0 -3px 0 var(--ink) inset}
+.dropzone.over{outline:2px dashed var(--ink);outline-offset:4px;border-radius:12px}
+.qitem .h{cursor:grab;color:var(--ink3)}
+/* رقم الطلبية واسم العميل ظاهرين دايماً (بينزلوا سطر بدل ما يتقصّوا)، والأيقونات أصغر */
+.qitem{gap:5px}
+.qitem .grow{white-space:normal;overflow:visible;overflow-wrap:anywhere;line-height:1.35}
+.qitem .grow b,.qitem .grow .muted{white-space:nowrap}
+.qitem svg.ic{width:13px;height:13px;vertical-align:-2px}
+.qitem .tag{padding:1px 3px;border-radius:5px}
+.qitem .btn.icon{padding:2px 3px;border-radius:6px}
+.qitem .pos{width:19px;height:19px;font-size:11px}
+
+/* ===== الفورم ===== */
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form .full{grid-column:1/-1}
+.fld label{display:block;font-size:12.5px;font-weight:600;color:var(--ink2);margin-bottom:3px}
+.fld label i{font-style:normal;color:var(--ink3);font-weight:400}
+.fld input,.fld select,.fld textarea,.inp{width:100%;border:1px solid #cfd5dc;border-radius:10px;padding:8px 10px;background:#fff;outline:none;font-size:15px}
+.fld input:focus,.fld select:focus,.fld textarea:focus,.inp:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(17,24,39,.07)}
+.fld textarea{min-height:56px;resize:vertical}
+.pair{display:flex;gap:6px;align-items:center}
+.pair span{color:var(--ink3)}
+.seg{display:flex;gap:4px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{flex:1;border:0;background:transparent;border-radius:7px;padding:6px 4px;font-size:14px;font-weight:500;color:var(--ink2)}
+.seg button.on{background:var(--ink);color:#fff}
+.suggest{background:var(--sp-bg);border:1px solid var(--sp-line);color:var(--sp-ink);border-radius:12px;padding:10px 12px;font-size:14px}
+.suggest .t{font-weight:700;margin-bottom:6px;display:flex;gap:6px;align-items:center}
+.suggest .los{display:flex;flex-wrap:wrap;gap:6px}
+.lobtn{border:1px solid var(--sp-line);background:#fff;color:var(--sp-ink);border-radius:8px;padding:4px 10px;font-weight:600;font-size:14px}
+.lobtn.on{background:var(--sp-ink);color:#fff;border-color:var(--sp-ink)}
+.chk{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;user-select:none}
+.chk input{width:18px;height:18px;accent-color:#111827}
+
+/* ===== البلاغات ===== */
+.report{border:1px solid var(--red-line);background:var(--red-bg);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.report .rt{display:flex;gap:8px;align-items:center;color:var(--red);font-weight:700}
+.report .rs{font-size:14px}
+.report .acts{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ===== الفضلات ===== */
+.lorow{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.losz{font-size:20px;font-weight:700;min-width:96px;white-space:nowrap}
+.lorow .d{font-size:13px;color:var(--ink2)}
+.lorow .sw{width:34px;height:34px;border-radius:8px;flex:none;border:1px solid rgba(0,0,0,.12)}
+.lorow.mini{padding:7px 10px}
+.lorow.mini .losz{font-size:16px;min-width:80px}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.fbtn{border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 12px;font-size:13px;font-weight:500;color:var(--ink2)}
+.fbtn.on{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* ===== المودال ===== */
+#modal{position:fixed;inset:0;z-index:60;display:none;align-items:flex-end;justify-content:center;background:rgba(17,24,39,.45)}
+#modal.show{display:flex}
+.sheet{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));animation:up .18s ease-out}
+@media(min-width:620px){#modal{align-items:center}.sheet{border-radius:20px}}
+@keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
+.sheet-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sheet-h h3{margin:0;font-size:19px}
+.sheet-h .x{margin-inline-start:auto;border:0;background:var(--surface2);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center}
+.checklist{display:flex;flex-direction:column;gap:8px;margin:6px 0 14px}
+.checklist label{display:flex;gap:12px;align-items:center;border:2px solid var(--line);border-radius:14px;padding:14px;font-size:17px;font-weight:600;cursor:pointer;user-select:none}
+.checklist input{width:26px;height:26px;accent-color:#0f766e;flex:none}
+.checklist label:has(input:checked){border-color:#0f766e;background:var(--sp-bg)}
+.corners{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0}
+.corners button{height:110px;border-radius:16px;border:2px solid #86efac;background:#f0fdf4;color:#14532d;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700}
+.corners button small{font-size:15px}
+.corners button b{font-size:44px;line-height:1}
+.reasons{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.reasons button{border:2px solid var(--line);background:#fff;border-radius:14px;padding:14px;font-size:17px;font-weight:600;text-align:start}
+.reasons button.on{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14.5px;margin:4px 0 10px}
+.kv dt{color:var(--ink3)}
+.kv dd{margin:0;font-weight:600}
+.timeline{list-style:none;margin:0;padding:0;position:relative}
+.timeline li{position:relative;padding:0 22px 12px 0;font-size:14px}
+.timeline li::before{content:"";position:absolute;right:5px;top:7px;width:9px;height:9px;border-radius:50%;background:var(--ink)}
+.timeline li::after{content:"";position:absolute;right:9px;top:17px;bottom:-2px;width:1px;background:var(--line)}
+.timeline li:last-child::after{display:none}
+.timeline li.auto::before{background:#fff;border:2px solid var(--ink3)}
+.timeline li.red::before{background:var(--red)}
+.timeline li.undone{opacity:.5;text-decoration:line-through}
+.timeline .tm{color:var(--ink3);font-size:12.5px;display:block}
+.sumline{background:var(--surface2);border-radius:10px;padding:10px 12px;font-weight:600;font-size:14px;margin-top:6px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
+
+/* ===== التوست ===== */
+#toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:70;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,420px)}
+.toast{pointer-events:auto;background:#111827;color:#fff;border-radius:14px;padding:10px 12px 12px;display:flex;align-items:center;gap:10px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.25);position:relative;overflow:hidden;font-weight:500}
+.toast .undo{margin-inline-start:auto;background:#fff;color:#111827;border:0;border-radius:8px;padding:6px 14px;font-weight:700}
+.toast .bar{position:absolute;bottom:0;right:0;height:3px;background:#5eead4;animation:shrink linear forwards}
+.toast.red{background:var(--red)}
+body:has(#modal.show) #toast{visibility:hidden}
+@keyframes shrink{from{width:100%}to{width:0}}
+
+/* ===== الأسبوع ===== */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:900px){.wide .kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
+.kpi .l{font-size:12.5px;color:var(--ink2);font-weight:600}
+.kpi .v{font-size:30px;font-weight:700;line-height:1.2;margin-top:2px}
+.kpi .v small{font-size:14px;font-weight:600;color:var(--ink2)}
+.kpi .s{font-size:12.5px;color:var(--ink3)}
+.kpi.hero{border-color:#99f6e4;background:linear-gradient(180deg,#f0fdfa,#fff)}
+.kpi.warn .v{color:var(--red)}
+.up{color:#15803d;font-weight:700}
+.bars{display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:8px}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.bars .b i{display:block;width:100%;max-width:38px;background:#94a3b8;border-radius:6px 6px 2px 2px;min-height:3px}
+.bars .b.today i{background:#0f766e}
+.bars .b span{font-size:12px;color:var(--ink3)}
+.bars .b em{font-style:normal;font-size:12px;font-weight:700}
+.hbar{display:grid;grid-template-columns:96px 1fr 60px;gap:8px;align-items:center;font-size:13.5px;margin-bottom:6px}
+.hbar .t{height:14px;border-radius:4px;background:var(--line2);overflow:hidden}
+.hbar .t i{display:block;height:100%;background:var(--c)}
+.hbar .val{text-align:left;font-weight:600}
+
+/* السجل */
+.logrow{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:14px;align-items:flex-start}
+.logrow .tm{color:var(--ink3);font-size:12.5px;min-width:92px}
+.logrow .src{font-size:11px;color:var(--ink3);border:1px solid var(--line);border-radius:6px;padding:0 5px;margin-inline-start:4px}
+.logrow.undone .grow{opacity:.5;text-decoration:line-through}
+
+.stub{padding:30px;text-align:center;color:var(--ink3)}
+</style>
+</head>
+<body>
+<div id="rolebar"></div>
+<main id="app"></main>
+<div id="modal"></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   Atelier Borji — نموذج عرض
+   كل حركة بتتسجل "حدث" في S.events، وحالة الطلبية بتتحدّث معاها.
+   البيانات في localStorage بس. مفيش سيرفر.
+   ===================================================================== */
+
+const KEY = 'atelier-borji-demo-v2';
+const UIKEY = 'atelier-borji-demo-ui';
+const H = 3600e3, MIN = 60e3, DAY = 24 * H;
+
+/* ---------- أيقونات ---------- */
+const ICONS = {
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  alert:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/>',
+  cut:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/>',
+  sand:'<path d="M3 12h18M3 6h18M3 18h18"/>',
+  box:'<path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5M12 13v8"/>',
+  home:'<path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/>',
+  line:'<rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  ready:'<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>',
+  piece:'<rect x="3" y="7" width="12" height="10" rx="1"/><path d="M15 10h6v7h-6"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
+  log:'<path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/>',
+  layers:'<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/>',
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',
+  copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  up:'<path d="m18 15-6-6-6 6"/>',
+  down:'<path d="m6 9 6 6 6-6"/>',
+  grip:'<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
+  bolt:'<path d="M13 2 4 14h7l-1 8 9-12h-7Z"/>',
+  note:'<path d="M4 4h16v12H8l-4 4Z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  truck:'<path d="M1 4h14v12H1zM15 9h4l3 3v4h-7"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>',
+  refresh:'<path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/>',
+  eye:'<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/>',
+  file:'<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5"/>',
+  download:'<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
+  upload:'<path d="M12 15V3M7 8l5-5 5 5M4 21h16"/>',
+};
+const ic = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24">${ICONS[n] || ''}</svg>`;
+
+/* ---------- المراحل ---------- */
+const STAGES = {
+  new:      { name:'جديدة' },
+  queue:    { name:'في الدور' },
+  cut:      { name:'عالتقطيع' },
+  waitsand: { name:'مستنية تقشيط' },
+  sand:     { name:'عالتقشيط' },
+  ready:    { name:'جاهزة' },
+  done:     { name:'تسلّمت' },
+};
+const chip = (st, label) => `<span class="chip st-${st}">${label || STAGES[st].name}</span>`;
+
+/* ---------- الأدوار ---------- */
+const ROLES = {
+  ahmed:   { name:'أحمد',       who:'أحمد',          mgmt:true, desk:true },
+  manager: { name:'المسئول',    who:'المسئول',       mgmt:true },
+  sup:     { name:'مشرف خط 1',  who:'المشرف، خط 1', line:1 },
+  rami:    { name:'رامي برجي',  who:'رامي برجي',     view:true },
+};
+const TABS = {
+  ahmed:   [['board','اللوحة','home'],['orders','الطلبيات','list'],['ready','الجاهزة','ready'],['lo','الفضلات','piece'],['week','الأسبوع','chart'],['log','سجل النشاط','log']],
+  manager: [['home','الرئيسية','home'],['orders','الطلبيات','list'],['ready','الجاهزة','ready'],['lo','الفضلات','piece'],['week','الأسبوع','chart']],
+  sup:     [['mine','خطّي','line'],['orders','الطلبيات','list'],['ready','الجاهزة','ready'],['lo','الفضلات','piece']],
+  rami:    [['home','الرئيسية','home'],['orders','الطلبيات','list'],['ready','الجاهزة','ready'],['lo','الفضلات','piece'],['week','الأسبوع','chart']],
+};
+const SYS = 'السيستم';
+const supWho = l => 'المشرف، خط ' + l;
+
+/* ---------- الألوان (أكواد الألواح) ---------- */
+const COLORS = [
+  ['H1145', 'سنديان باردولينو طبيعي', '#b08a5e'],
+  ['W1000', 'أبيض ممتاز', '#f5f5f2'],
+  ['U999',  'أسود', '#232323'],
+  ['F637',  'رخام أبيض كرارا', '#e9e7e2'],
+  ['H3303', 'سنديان هاميلتون', '#9c7650'],
+  ['U708',  'رمادي فاتح', '#c3c5c6'],
+  ['H1180', 'سنديان هاليفاكس', '#8a6a4a'],
+  ['U727',  'رمادي حجري', '#8c8983'],
+];
+const colorInfo = code => COLORS.find(c => c[0] === code) || [code, '', codeHue(code)];
+/* كود مش معروف (زي 161 أو 66): لون ثابت محسوب من الكود نفسه */
+function codeHue(code) { let h = 0; for (const ch of String(code)) h = (h * 31 + ch.charCodeAt(0)) % 360; return `hsl(${h} 45% 58%)`; }
+/* شارة كود اللوح: علشان ما تتلخبط مع رقم الطلبية */
+const colorBadge = code => `<span class="cbadge" title="كود اللوح"><i style="background:${colorInfo(code)[2]}"></i><span class="num">${esc(code)}</span></span>`;
+const colorLabel = code => { const c = colorInfo(code); return c[1] ? `${c[0]} ${c[1]}` : code; };
+
+/* ---------- الوقت (توقيت أبيدجان = GMT) ---------- */
+function fmtT(t, withDay = true) {
+  const d = new Date(t), now = new Date();
+  let h = d.getUTCHours(); const m = String(d.getUTCMinutes()).padStart(2, '0');
+  const ap = h < 12 ? 'ص' : 'م'; h = h % 12 || 12;
+  const yr = d.getUTCFullYear() !== now.getUTCFullYear() ? '/' + d.getUTCFullYear() : '';
+  const day = `⁦${d.getUTCDate()}/${d.getUTCMonth() + 1}${yr}⁩`;
+  const tm = `⁦${h}:${m}⁩ ${ap}`;
+  return withDay ? `${day}، ${tm}` : tm;
+}
+const fmtDay = t => { const d = new Date(t); return `⁦${d.getUTCDate()}/${d.getUTCMonth() + 1}⁩`; };
+function plural(n, one, two, few, many) { return n === 1 ? one : n === 2 ? two : (n >= 3 && n <= 10) ? `${n} ${few}` : `${n} ${many}`; }
+function fmtDur(ms) {
+  const tot = Math.max(0, Math.round(ms / MIN)); const h = Math.floor(tot / 60), m = tot % 60;
+  const hs = h ? plural(h, 'ساعة', 'ساعتين', 'ساعات', 'ساعة') : '';
+  const ms_ = m ? plural(m, 'دقيقة', 'دقيقتين', 'دقايق', 'دقيقة') : '';
+  if (hs && ms_) return `${hs} و${ms_}`;
+  return hs || ms_ || 'أقل من دقيقة';
+}
+const weekStart = (t = Date.now()) => { const d = new Date(t); const dow = (d.getUTCDay() + 6) % 7; return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - dow * DAY; };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const pad4 = n => String(n).padStart(4, '0');
+const hid = id => '#' + id;   // رقم الطلبية بيظهر دايماً بـ #
+const sz = x => `\u2066${x.w} × ${x.h}\u2069 مم`;   // مقاسات الفضلة بالمللي
+
+/* ---------- البيانات التجريبية ---------- */
+function seed() {
+  const now = Date.now();
+  const ago = h => now - h * H;
+  const S = { v:2, seq:154, evSeq:860, repSeq:3, loSeq:20, orders:[], leftovers:[], events:[], reports:[], week:null, seededAt:now };
+  const AH = 'أحمد', MG = 'المسئول';
+  const E = (t, who, type, oid, txt, extra) => S.events.push(Object.assign({ n:0, t, who, type, oid, txt }, extra || {}));
+  const O = o => { const x = Object.assign({ dbl:0, scrap:null, usedLo:null, line:null, urgent:false, notes:'', blocked:false, corner:null, qpos:0, newNote:false, tookLo:null, at:0, readyAt:null, doneAt:null, waitAt:null }, o); x.id = pad4(x.no); S.orders.push(x); return x; };
+  const spWords = o => [o.dbl && 'الدوبل', o.scrap && 'الفضلة', o.usedLo && 'الفضلة المستخدمة'].filter(Boolean).join(' و');
+  function hist(o, t) {
+    o.at = ago(t.c);
+    E(ago(t.c), t.cw || AH, 'create', o.id, 'سجّلها');
+    if (o.usedLo) E(ago(t.c) + MIN, AH, 'loReserve', o.id, `حجز الفضلة ${sz(o.usedLo)} للطلبية`);
+    if (t.a != null) E(ago(t.a), t.aw || MG, 'assign', o.id, 'وزّعها على خط ' + o.line);
+    if (t.u != null) E(ago(t.u), AH, 'urgent', o.id, 'علّمها مستعجلة');
+    if (t.sc != null) E(ago(t.sc), supWho(o.line), 'startCut', o.id, 'بدأ التقطيع');
+    if (t.fc != null) E(ago(t.fc), supWho(o.line), 'finishCut', o.id, 'خلّص التقطيع' + (spWords(o) ? '، وأكّد ' + spWords(o) : ''));
+    if (t.ws != null) { E(ago(t.ws), SYS, 'waitSand', o.id, 'دخلت انتظار التقشيط', { auto:1 }); o.waitAt = ago(t.ws); }
+    if (t.es != null) E(ago(t.es), SYS, 'enterSand', o.id, 'دخلت التقشيط', { auto:1 });
+    if (t.fs != null) { E(ago(t.fs), supWho(o.line), 'finishSand', o.id, 'خلّص التقشيط، ركن ' + o.corner, { line:o.line }); o.readyAt = ago(t.fs); }
+    if (t.dl != null) { E(ago(t.dl), supWho(o.line), 'deliver', o.id, 'سلّمها للعميل' + (o.scrap ? (o.tookLo ? '، والعميل أخد الفضلة' : '، والعميل ما أخد الفضلة') : '')); o.doneAt = ago(t.dl); }
+  }
+
+  /* الفضلات: 5 في المكان + واحدة محجوزة لطلبية 0150 */
+  const LO = (w, h, color, from, daysAgo, status = 'avail', oid = null) => { const x = { id:'L' + (++S.loSeq), w, h, color, from, at: now - daysAgo * DAY, status, oid }; S.leftovers.push(x); return x; };
+  LO(1200, 600, 'H1145', 'طلبية #0128، أبو طوني فرنيتشر', 9);
+  LO(900, 450, 'H1145', 'طلبية #0133، مكتب المحامي زيدان', 5);
+  LO(700, 300, 'H1145', 'إضافة يدوي', 21);
+  LO(1500, 400, 'W1000', 'طلبية #0136، مطبخ الحاج سمير', 3);
+  LO(800, 550, 'U999', 'إضافة يدوي', 118);
+  const resLo = LO(900, 400, 'W1000', 'طلبية #0131، شقة الريفييرا', 12, 'reserved', '0150');
+
+  /* الطلبيات */
+  // أرشيف
+  let o = O({ no:141, client:'مطبخ الحاج سمير', color:'W1000', sheets:8, meters:52, line:2, status:'done', corner:1 });
+  hist(o, { c:74, a:73, sc:70, fc:69, es:69, fs:67.5, dl:44 });
+  // جاهزة
+  o = O({ no:142, client:'أبو جورج حدّاد', color:'H1145', sheets:6, meters:45, dbl:8, scrap:{ w:1200, h:600 }, line:1, status:'ready', corner:2 });
+  hist(o, { c:29, a:28.9, sc:26.4, fc:24.9, es:24.9, fs:23.6 });
+  o = O({ no:143, client:'شركة كوناتي للمفروشات', color:'U999', sheets:10, meters:70, line:2, status:'ready', corner:1 });
+  hist(o, { c:27, a:26.5, aw:'أحمد', sc:23, fc:21.4, es:21.4, fs:19.8 });
+  o = O({ no:144, client:'مفروشات الأرز', color:'F637', sheets:4, meters:28, line:1, status:'ready', corner:3 });
+  hist(o, { c:8.5, a:8.2, sc:6.1, fc:5.2, ws:5.2, es:4.4, fs:3.3 });
+  // خط 1
+  o = O({ no:145, client:'ميشال صعب', color:'H3303', sheets:7, meters:50, line:1, status:'sand' });
+  hist(o, { c:7.6, a:7.4, sc:3.6, fc:2.4, ws:2.4, es:1.2 });
+  S.reports.push({ id:'R1', oid:'0145', line:1, reason:'الألواح ما نزلت', t:ago(5.1), status:'resolved', res:{ type:'clear', who:'أحمد', t:ago(3.7) }, seenSup:true, seenAhmed:true, seenMgr:true });
+  E(ago(5.1), supWho(1), 'report', '0145', 'بلّغ "مش جاهزة": الألواح ما نزلت', { red:1 });
+  E(ago(3.7), AH, 'clear', '0145', 'علّمها جاهزة للتقطيع');
+  o = O({ no:147, client:'فادي خوري', color:'W1000', sheets:5, meters:36, line:1, status:'cut' });
+  hist(o, { c:6, a:5.8, sc:0.7 });
+  o = O({ no:146, client:'بيت الضيافة، كوكودي', color:'U708', sheets:3, meters:20, line:1, status:'waitsand' });
+  hist(o, { c:6.8, a:6.6, sc:2.3, fc:0.9, ws:0.9 });
+  o = O({ no:149, client:'إيلي نصّار', color:'H1145', sheets:6, meters:40, dbl:8, scrap:{ w:1000, h:450 }, line:1, status:'queue', qpos:1, urgent:true });
+  hist(o, { c:3.2, a:3.1, u:2.2 });
+  o = O({ no:150, client:'كريم عيتاني', color:'W1000', sheets:4, meters:30, line:1, status:'queue', qpos:2, usedLo:{ id:resLo.id, w:900, h:400 } });
+  hist(o, { c:3.0, a:2.9 });
+  o = O({ no:151, client:'مدرسة سان جوزيف', color:'U727', sheets:9, meters:64, line:1, status:'queue', qpos:3, notes:'الأبواب بالتقشيط من الجهتين' });
+  hist(o, { c:2.6, a:2.5 });
+  E(ago(2.4), AH, 'note', '0151', 'كتب ملاحظة: الأبواب بالتقشيط من الجهتين');
+  // خط 2
+  o = O({ no:148, client:'أوتيل لا بالميراي', color:'H1180', sheets:12, meters:88, line:2, status:'cut' });
+  hist(o, { c:5.5, a:5.3, sc:1.1 });
+  o = O({ no:152, client:'نجّارة أبو علي', color:'F637', sheets:3, meters:0, line:2, status:'queue', qpos:1 });
+  hist(o, { c:2, a:1.9 });
+  o = O({ no:153, client:'سليم الحلبي', color:'U999', sheets:5, meters:38, line:2, status:'queue', qpos:2 });
+  hist(o, { c:1.5, a:1.3, aw:'أحمد' });
+  // جديدة
+  o = O({ no:154, client:'مطعم الأرز الذهبي', color:'H1145', sheets:4, meters:26, status:'new' });
+  hist(o, { c:0.6 });
+
+  S.events.sort((a, b) => a.t - b.t).forEach(e => e.n = ++S.evSeq);
+
+  /* أرقام الأسبوع الجاهزة (من الاثنين لحد هلّق) */
+  const dow = (new Date(now).getUTCDay() + 6) % 7;
+  const daily = [6, 5, 7, 4, 6, 3, 0].slice(0, dow + 1);
+  const lastDaily = [5, 4, 5, 4, 5, 3, 0];
+  const done = daily.reduce((a, b) => a + b, 0) || 1;
+  const l1 = Math.round(done * 0.55);
+  S.week = {
+    daily, lastDaily, avgH:7.4, avgN:done,
+    stageH:{ queue:3.6, cut:0.9, waitsand:0.6, sand:1.2 },
+    lines:{ 1:{ o:l1, s:Math.round(l1 * 6.3) }, 2:{ o:done - l1, s:Math.round((done - l1) * 6.8) } },
+    loUsed:Math.max(1, Math.round(done / 8)),
+    reports:Math.max(1, Math.round(done / 10)),
+    reasons:{ 'الألواح ما نزلت':Math.max(1, Math.round(done / 15)), 'التقشيط مش موجود':1 },
+    downMin:Math.max(25, done * 3),
+  };
+  return S;
+}
+
+/* ---------- الحالة ---------- */
+let S;
+const UI = { role:'ahmed', tab:null, q:'', draft:{}, loFilter:'', ordFilter:'all', logFilter:'all' };
+function load() {
+  try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
+  if (!S || S.v !== 2) { S = seed(); save(); }
+  try { Object.assign(UI, JSON.parse(localStorage.getItem(UIKEY)) || {}); } catch (e) {}
+  UI.q = ''; UI.draft = UI.draft || {};
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function saveUI() { try { localStorage.setItem(UIKEY, JSON.stringify({ role:UI.role, tab:UI.tab, draft:UI.draft })); } catch (e) {} }
+function commit() { save(); render(); }
+
+const ROLE = () => ROLES[UI.role];
+const byId = id => S.orders.find(o => o.id === id);
+const lineQueue = l => S.orders.filter(o => o.line === l && o.status === 'queue').sort((a, b) => a.qpos - b.qpos);
+const onCut = l => S.orders.find(o => o.line === l && o.status === 'cut');
+const onSand = l => S.orders.find(o => o.line === l && o.status === 'sand');
+const waiting = l => S.orders.filter(o => o.line === l && o.status === 'waitsand').sort((a, b) => a.waitAt - b.waitAt);
+const readyList = () => S.orders.filter(o => o.status === 'ready').sort((a, b) => a.corner - b.corner || a.readyAt - b.readyAt);
+const newList = () => S.orders.filter(o => o.status === 'new').sort((a, b) => a.no - b.no);
+const openReports = () => S.reports.filter(r => r.status === 'open');
+const reportFor = oid => S.reports.find(r => r.oid === oid && r.status === 'open');
+
+/* تسجيل حدث: ما بيتعدّلش ولا بيتمسحش */
+function logEv(type, oid, txt, extra = {}) {
+  const e = Object.assign({ n: ++S.evSeq, t: Date.now(), who: ROLE().who, type, oid, txt, live:1 }, extra);
+  S.events.push(e); return e;
+}
+
+/* ---------- الكارت ---------- */
+function specialLines(o) {
+  const L = [];
+  if (o.dbl) L.push([ 'layers', `دوبل: ${o.dbl * 2} شقفة، بتصير ${o.dbl} قطع بعد الكولة. جنّب الـ ${o.dbl * 2} شقفة.` ]);
+  if (o.scrap) L.push([ 'piece', `فضلة ${sz(o.scrap)}، ما تنرمى، تتركن مع الطلبية.` ]);
+  if (o.usedLo) L.push([ 'box', `هات الفضلة ${sz(o.usedLo)} من مكان الفضل.` ]);
+  return L;
+}
+/* علامة "الدوبل عالكولة": بتضل مع الطلبية لحد ما حدا يدوس "الدوبل جاهز" */
+function glueTag(o) {
+  if (!o.glue) return '';
+  return `<span class="tag glue">⏳ الدوبل عالكولة${!ROLE().view ? `<button class="gbtn" data-act="glueDone" data-id="${o.id}">الدوبل جاهز</button>` : ''}</span>`;
+}
+function metaLine(o) {
+  return `<span>${colorBadge(o.color)}</span><span><b class="num">${o.sheets}</b> لوح</span><span>${o.meters ? `<b class="num">${o.meters}</b> م تقشيط` : 'بلا تقشيط'}</span>`;
+}
+function cardHTML(o, opt = {}) {
+  const sp = specialLines(o);
+  const rep = o.blocked ? { reason: o.blockReason || '' } : null;
+  const tags = [];
+  if (o.urgent && (o.status === 'queue' || o.status === 'new')) tags.push(`<span class="tag urgent">${ic('bolt')}مستعجلة</span>`);
+  if (o.glue) tags.push(glueTag(o));
+  if (o.newNote && o.status === 'queue') tags.push(`<span class="tag note">${ic('note')}ملاحظة جديدة</span>`);
+  if (opt.showLine && o.line) tags.push(`<span class="tag" style="background:var(--line2)">خط ${o.line}</span>`);
+  return `<div class="ocard st-${o.status}${opt.compact ? ' compact' : ''}${rep ? ' blocked' : ''}" data-act="open" data-id="${o.id}">
+    ${rep ? `<div class="blockline">${ic('alert')}مستنية خامات: ${esc(rep.reason)}</div>` : ''}
+    <div class="in">
+      <div class="top">
+        <div class="grow"><div class="client">${esc(o.client)}</div></div>
+        <div class="no num">${hid(o.id)}</div>
+      </div>
+      <div class="meta">${metaLine(o)}</div>
+      ${(opt.chip || tags.length) ? `<div class="tags">${opt.chip ? chip(o.status, o.status === 'ready' ? 'جاهزة، ركن ' + o.corner : null) : ''}${tags.join('')}</div>` : ''}
+    </div>
+    ${sp.length && !opt.noStrip ? `<div class="strip">${sp.map(([i, t]) => `<div>${ic(i)}<span>${t}</span></div>`).join('')}</div>` : ''}
+  </div>`;
+}
+
+/* ---------- المودال والتوست ---------- */
+const $modal = document.getElementById('modal');
+function openModal(title, body, cls = '') {
+  $modal.innerHTML = `<div class="sheet ${cls}" role="dialog" aria-modal="true"><div class="sheet-h"><h3>${title}</h3><button class="x" data-act="close" aria-label="قفل">${ic('x')}</button></div>${body}</div>`;
+  $modal.classList.add('show');
+}
+function closeModal() { $modal.classList.remove('show'); $modal.innerHTML = ''; }
+$modal.addEventListener('click', e => { if (e.target === $modal) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function toast(msg, opt = {}) {
+  const box = document.getElementById('toast');
+  const el = document.createElement('div');
+  const ms = opt.ms || 3200;
+  box.innerHTML = '';   // توست واحد بس في المرة
+  el.className = 'toast' + (opt.red ? ' red' : '');
+  el.innerHTML = `<span class="grow">${msg}</span>${opt.undo ? `<button class="undo">${ic('undo')} تراجع</button>` : ''}<i class="bar" style="animation-duration:${ms}ms"></i>`;
+  box.appendChild(el);
+  const kill = () => el.remove();
+  const tm = setTimeout(kill, ms);
+  if (opt.undo) el.querySelector('.undo').onclick = () => { clearTimeout(tm); kill(); opt.undo(); };
+  return el;
+}
+
+/* تراجع 10 ثواني: نصوّر الحالة قبل الحركة، ولو اتداس تراجع نرجّعها.
+   الأحداث نفسها بتفضل في السجل ومعلّمة "اتلغت". */
+function withUndo(label, oid, fn) {
+  const snap = JSON.stringify({ orders:S.orders, leftovers:S.leftovers, reports:S.reports });
+  const n0 = S.evSeq;
+  fn();
+  commit();
+  toast(label, { ms:10000, undo: () => {
+    const back = JSON.parse(snap);
+    S.orders = back.orders; S.leftovers = back.leftovers; S.reports = back.reports;
+    S.events.forEach(e => { if (e.n > n0) e.undone = 1; });
+    logEv('undo', oid, `تراجع عن "${label}"`);
+    commit();
+    toast('رجعت متل ما كانت');
+  } });
+}
+
+/* ---------- بيب (لما يوصل بلاغ لأحمد) ---------- */
+function beep() {
+  try {
+    const A = new (window.AudioContext || window.webkitAudioContext)();
+    [0, .18].forEach((d, i) => { const o = A.createOscillator(), g = A.createGain(); o.frequency.value = i ? 660 : 880; o.connect(g); g.connect(A.destination); g.gain.setValueAtTime(.0001, A.currentTime + d); g.gain.exponentialRampToValueAtTime(.25, A.currentTime + d + .02); g.gain.exponentialRampToValueAtTime(.0001, A.currentTime + d + .16); o.start(A.currentTime + d); o.stop(A.currentTime + d + .18); });
+  } catch (e) {}
+}
+
+/* ---------- الشاشات ---------- */
+const SCREENS = {};   // tab -> () => html
+const ACT = {};       // data-act -> handler(dataset, el, event)
+
+function renderRolebar() {
+  const unseen = openReports().filter(r => !r.seenAhmed).length;
+  const mgrAlert = openReports().filter(r => !r.seenMgr).length;
+  document.getElementById('rolebar').innerHTML = `
+    <div class="brand"><b>Atelier Borji</b><small>نموذج عرض</small></div>
+    <div class="roles" role="tablist">
+      ${Object.entries(ROLES).map(([k, r]) => `<button role="tab" class="${UI.role === k ? 'on' : ''}" data-act="role" data-r="${k}">${r.name}${(k === 'ahmed' && unseen && UI.role !== k) || (k === 'manager' && mgrAlert && UI.role !== k) ? '<i class="dot"></i>' : ''}</button>`).join('')}
+    </div>
+    <button class="resetbtn" data-act="reset" title="ابدأ العرض من الأول">${ic('refresh')} <span class="rst-l">ابدأ العرض من الأول</span></button>
+    <button class="resetbtn" data-act="blank" title="ابدأ فاضي">${ic('file')} <span class="rst-l">ابدأ فاضي</span></button>`;
+}
+
+function render() {
+  renderRolebar();
+  const r = ROLE(), tabs = TABS[UI.role];
+  if (!tabs.some(t => t[0] === UI.tab) && !(UI.tab === 'log' && r.mgmt || UI.tab === 'log' && r.view)) UI.tab = tabs[0][0];
+  const fn = SCREENS[UI.tab];
+  const body = fn ? fn() : `<div class="stub">هالشاشة بعدها عم تنبنى</div>`;
+  const app = document.getElementById('app');
+  const y = window.scrollY;
+  if (r.desk) {
+    app.innerHTML = `<div class="desk">
+      <nav class="dtabs">${tabs.map(([k, n, i]) => `<button class="${UI.tab === k ? 'on' : ''}" data-act="tab" data-t="${k}">${ic(i)}${n}${k === 'board' && openReports().length ? ` <span class="badge">${openReports().length}</span>` : ''}</button>`).join('')}</nav>
+      ${body}</div>`;
+  } else {
+    const title = (tabs.find(t => t[0] === UI.tab) || ['', 'سجل النشاط'])[1];
+    app.innerHTML = `<div class="phone">
+      <div class="phone-head"><h1>${UI.role === 'sup' && UI.tab === 'mine' ? 'خطّي · خط 1' : title}</h1><span class="who">${r.who}${r.view ? ' · مشاهدة بس' : ''}</span></div>
+      <div class="phone-body">${body}</div>
+      <nav class="bnav">${tabs.map(([k, n, i]) => `<button class="${UI.tab === k ? 'on' : ''}" data-act="tab" data-t="${k}">${ic(i)}<span>${n}</span></button>`).join('')}</nav>
+    </div>`;
+  }
+  window.scrollTo(0, y);
+  saveUI();
+  if (typeof afterRender === 'function') afterRender();
+}
+
+/* ---------- الأحداث العامة ---------- */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el || el.disabled) return;
+  const f = ACT[el.dataset.act];
+  if (el.tagName === 'A') e.preventDefault();
+  if (f) { e.stopPropagation(); f(el.dataset, el, e); }
+});
+
+ACT.close = () => closeModal();
+ACT.role = d => { UI.role = d.r; UI.tab = TABS[d.r][0][0]; closeModal(); render(); window.scrollTo(0, 0); onRoleEnter(); };
+ACT.tab = d => { UI.tab = d.t; render(); window.scrollTo(0, 0); };
+ACT.reset = () => openModal('نبدأ العرض من الأول؟', `
+  <p class="muted" style="margin-top:0">كل شي انعمل بالعرض رح ينمسح، والطلبيات والفضلات وأرقام الأسبوع بترجع متل الأول.</p>
+  <div class="actions"><button class="btn dark" data-act="doReset">${ic('refresh')} إيه، من الأول</button><button class="btn" data-act="close">لأ</button></div>`);
+ACT.doReset = () => { S = seed(); UI.draft = {}; UI.q = ''; UI.loFilter = ''; save(); closeModal(); render(); toast('رجعنا للبيانات التجريبية'); };
+ACT.open = d => openOrder(d.id);
+
+/* ابدأ فاضي: من غير بيانات تجريبية، والأرقام من الشغل الحقيقي بس */
+function blankState() {
+  return { v:2, seq:0, evSeq:0, repSeq:0, loSeq:0, orders:[], leftovers:[], events:[], reports:[], week:null, blank:true, startedAt:Date.now() };
+}
+ACT.blank = () => openModal('نبدأ فاضي؟', `
+  <p style="margin:0 0 8px;font-weight:700;font-size:16px">هيدا بيمسح كل شي: الطلبيات، البلاغات، الفضلات، والسجل.</p>
+  <p class="muted" style="margin:0 0 12px">رقم الطلبيات بيرجع يبلّش من <span class="num">#0001</span>، وملخص الأسبوع بيصير يتحسب من الشغل الحقيقي بس. إذا بدك تحتفظ بشي، احفظ نسخة من شاشة أحمد قبل.</p>
+  <label class="chk" style="margin-bottom:12px"><input type="checkbox" id="blankOk"> فهمت، كل شي رح ينمسح وما في رجعة</label>
+  <div class="actions"><button class="btn dark" id="blankBtn" data-act="doBlank" disabled>${ic('file')} امسح كل شي وابدأ فاضي</button><button class="btn" data-act="close">لأ</button></div>`);
+document.addEventListener('change', e => { if (e.target.id === 'blankOk') document.getElementById('blankBtn').disabled = !e.target.checked; });
+ACT.doBlank = () => {
+  if (!document.getElementById('blankOk')?.checked) return;
+  S = blankState(); UI.draft = {}; UI.q = ''; UI.loFilter = '';
+  save(); closeModal(); render();
+  toast('بلّشنا فاضي. أول طلبية رح تكون #0001');
+};
+
+function onRoleEnter() {
+  if (UI.role === 'ahmed') {
+    const un = openReports().filter(r => !r.seenAhmed);
+    if (un.length) { beep(); toast(`${ic('alert')} بلاغ "مش جاهزة" من خط ${un[0].line}: طلبية ${hid(un[0].oid)}`, { red:true, ms:5000 }); un.forEach(r => r.seenAhmed = true); save(); render(); }
+  }
+  if (UI.role === 'manager') { let ch = false; openReports().forEach(r => { if (!r.seenMgr) { r.seenMgr = true; ch = true; } }); if (ch) save(); }
+}
+
+/* =====================================================================
+   المرحلة 2: شاشة المشرف "خطّي" وحركات المراحل
+   ===================================================================== */
+SCREENS.mine = () => {
+  const L = ROLE().line || 1;
+  const cut = onCut(L), sand = onSand(L), wq = waiting(L), q = lineQueue(L);
+  const solved = S.reports.filter(r => r.line === L && r.status === 'resolved' && !r.seenSup);
+  let h = '';
+  solved.forEach(r => {
+    const msg = r.res.type === 'promote'
+      ? `الإدارة ردّت على بلاغ ${hid(r.oid)}.<br>الطلبية الجاية هلّق: <b class="num">${hid(r.res.oid2)}</b>`
+      : `طلبية <b class="num">${hid(r.oid)}</b> صارت جاهزة للتقطيع، كمّل عادي.`;
+    h += `<div class="solved">${ic('check')}<div class="grow">${msg}</div><button class="btn sm" data-act="seenSolved" data-r="${r.id}">تمام</button></div>`;
+  });
+
+  // 1. عالتقطيع هلّق
+  h += `<section class="slot st-cut"><div class="slot-h">${cut ? '<i class="pulse"></i>' : ''}${ic('cut')} عالتقطيع هلّق</div>
+    ${cut ? cardHTML(cut) + `<button class="big" data-act="finishCut" data-id="${cut.id}">${ic('check')} تمّ التقطيع</button>`
+          : q.length && q.every(x => x.blocked)
+            ? `<div class="idle" style="color:var(--ink);font-weight:600">الخط مستني ألواح طلبية <span class="num">${hid(q[0].id)}</span>، الإدارة عندها خبر</div>`
+            : `<div class="idle">مكنة القطع فاضية. ابدأ أول طلبية من الجايين.</div>`}
+  </section>`;
+
+  // طابور "مستنية تقشيط": بين القطع والتقشيط، يلّي خلص الأول أول
+  h += `<section class="slot st-waitsand"><div class="slot-h">${ic('log')} مستنية تقشيط <span class="muted small" style="font-weight:500">(${wq.length})</span></div>
+    ${wq.length ? waitQueue(wq) : `<div class="idle">ما في طلبيات مستنية تقشيط.</div>`}
+  </section>`;
+
+  // 2. عالتقشيط هلّق
+  h += `<section class="slot st-sand"><div class="slot-h">${sand ? '<i class="pulse"></i>' : ''}${ic('sand')} عالتقشيط هلّق</div>
+    ${sand ? cardHTML(sand) + `<button class="big" data-act="finishSand" data-id="${sand.id}">${ic('check')} تمّ التقشيط</button>`
+           : `<div class="idle">مكنة التقشيط فاضية.</div>`}
+  </section>`;
+
+  // 3. الجايين
+  const first = q[0];
+  h += `<section class="slot st-queue"><div class="slot-h">${ic('list')} الجايين <span class="muted small" style="font-weight:500">(${q.length} بالدور)</span></div>`;
+  if (!first) h += `<div class="idle">ما في طلبيات بالدور هلّق.</div>`;
+  else {
+    h += cardHTML(first);
+    if (first.blocked) h += `<button class="big" disabled>${ic('log')} ${reportFor(first.id) ? 'بلّغت الإدارة، ناطرين الردّ' : 'مستنية خامات'}</button>`;
+    else {
+      h += `<button class="big" data-act="startCut" data-id="${first.id}" ${cut ? 'disabled' : ''}>${ic('cut')} ابدأ التقطيع</button>`;
+      if (cut) h += `<div class="muted small" style="text-align:center;margin-top:-4px">خلّص يلّي عالمكنة أوّل</div>`;
+      h += `<button class="big ghost" data-act="notReady" data-id="${first.id}">${ic('alert')} مش جاهزة</button>`;
+    }
+    const rest = q.slice(1, 3);
+    if (rest.length) h += `<div class="nextq">${rest.map(o => cardHTML(o, { compact:true })).join('')}</div>`;
+  }
+  h += `</section>`;
+  return h;
+};
+
+/* صفوف طابور "مستنية تقشيط": الترتيب بوقت ما خلصت تقطيع، وجنب كل وحدة من إمتى مستنية */
+function waitQueue(wq) {
+  return `<div class="waitq">${wq.map((o, i) => `<div class="wrow" data-act="open" data-id="${o.id}">
+    <span class="pos num">${i + 1}</span>
+    <span class="grow"><b class="num">${hid(o.id)}</b> ${esc(o.client)}</span>
+    ${glueTag(o)}
+    ${i === 0 ? '<span class="nx">الجاية عالتقشيط</span>' : ''}
+    <span class="since">مستنية من ${fmtDur(Date.now() - o.waitAt)}</span>
+  </div>`).join('')}</div>`;
+}
+
+ACT.seenSolved = d => { const r = S.reports.find(x => x.id === d.r); if (r) r.seenSup = true; commit(); };
+
+/* ابدأ التقطيع: مكنة واحدة = طلبية واحدة */
+ACT.startCut = d => {
+  const o = byId(d.id); if (!o || o.status !== 'queue') return;
+  if (onCut(o.line)) { toast('مكنة القطع عليها طلبية بعد ما خلصت'); return; }
+  if (o.blocked) { toast('هالطلبية مستنية خامات'); return; }
+  closeModal();
+  withUndo(`بدأ التقطيع: ${hid(o.id)}`, o.id, () => {
+    o.status = 'cut'; o.urgent = false; o.newNote = false;
+    logEv('startCut', o.id, 'بدأ التقطيع', { line:o.line });
+    // شريط "الإدارة ردّت" بيختفي لحاله أول ما الطلبية المقدَّمة تبدأ تقطيع
+    S.reports.forEach(r => { if (r.status === 'resolved' && r.res && r.res.type === 'promote' && r.res.oid2 === o.id) r.seenSup = true; });
+  });
+};
+
+/* تمّ التقطيع: قايمة تأكيد لو فيه دوبل أو فضلة */
+function checkItems(o) {
+  const L = [];
+  if (o.dbl) L.push(`جنّبت الـ ${o.dbl * 2} شقفة الدوبل`);
+  if (o.scrap) L.push(`جنّبت الفضلة ${sz(o.scrap)}`);
+  if (o.usedLo) L.push(`استخدمت الفضلة ${sz(o.usedLo)} من المكان`);
+  return L;
+}
+ACT.finishCut = d => {
+  const o = byId(d.id); if (!o || o.status !== 'cut') return;
+  const items = checkItems(o);
+  if (items.length) {
+    openModal(`قبل ما تقفل <span class="num">${hid(o.id)}</span>`, `
+      <p class="muted" style="margin:0 0 4px">علّم على كل وحدة:</p>
+      <div class="checklist">${items.map(t => `<label><input type="checkbox">${t}</label>`).join('')}</div>
+      <button class="big st-cut" id="cfmCut" data-act="confirmCut" data-id="${o.id}" disabled>${ic('check')} تمّ التقطيع</button>`);
+    return;
+  }
+  afterCut(o, false);
+};
+ACT.confirmCut = d => { const o = byId(d.id); if (o) afterCut(o, true); };
+document.addEventListener('change', e => {
+  const cl = e.target.closest('.checklist'); if (!cl) return;
+  const btn = document.getElementById('cfmCut');
+  if (btn) btn.disabled = ![...cl.querySelectorAll('input')].every(i => i.checked);
+});
+
+function cutText(o, confirmed) {
+  const w = [o.dbl && 'الدوبل', o.scrap && 'الفضلة', o.usedLo && 'الفضلة المستخدمة'].filter(Boolean).join(' و');
+  return 'خلّص التقطيع' + (confirmed && w ? '، وأكّد ' + w : '');
+}
+function afterCut(o, confirmed) {
+  if (!o.meters) { cornerPicker(o, 'cut', confirmed); return; }   // بلا تقشيط: على طول للركن
+  closeModal();
+  const where = onSand(o.line) ? 'مستنية تقشيط' : 'فاتت عالتقشيط';
+  withUndo(`تمّ التقطيع: ${hid(o.id)} · ${where}`, o.id, () => {
+    logEv('finishCut', o.id, cutText(o, confirmed), { line:o.line });
+    useReservedLo(o);
+    sendToGlue(o);
+    if (onSand(o.line)) {
+      o.status = 'waitsand'; o.waitAt = Date.now();
+      logEv('waitSand', o.id, 'دخلت انتظار التقشيط', { who:SYS, auto:1 });
+    } else {
+      o.status = 'sand';
+      logEv('enterSand', o.id, 'دخلت التقشيط', { who:SYS, auto:1 });
+    }
+  });
+}
+/* شقف الدوبل بتروح عالكولة بعد القطع، والطلبية بتكمّل طريقها عادي */
+function sendToGlue(o) {
+  if (!o.dbl) return;
+  o.glue = true;
+  logEv('glueStart', o.id, 'شقف الدوبل راحت عالكولة', { who:SYS, auto:1 });
+}
+ACT.glueDone = d => {
+  const o = byId(d.id); if (!o || !o.glue) return;
+  o.glue = false;
+  logEv('glueDone', o.id, 'علّم الدوبل جاهز (رجع من الكولة)');
+  commit();
+  if ($modal.classList.contains('show')) { if (document.querySelector('.timeline')) openOrder(o.id); else closeModal(); }
+  toast(`الدوبل تبع ${hid(o.id)} جاهز`);
+};
+function useReservedLo(o) {
+  if (!o.usedLo) return;
+  const lo = S.leftovers.find(x => x.id === o.usedLo.id);
+  if (lo) lo.status = 'used';
+}
+
+/* اختيار الركن: تلت زراير كبار */
+function cornerPicker(o, mode, confirmed) {
+  openModal(`<span class="num">${hid(o.id)}</span> · حطّها بأيّا ركن؟`, `
+    <p class="muted" style="margin:0">${esc(o.client)}${mode === 'cut' ? ' · بلا تقشيط' : ''}</p>
+    <div class="corners">${[1, 2, 3].map(c => `<button data-act="pickCorner" data-id="${o.id}" data-c="${c}" data-mode="${mode}" data-cf="${confirmed ? 1 : ''}"><small>ركن</small><b class="num">${c}</b></button>`).join('')}</div>`);
+}
+ACT.finishSand = d => { const o = byId(d.id); if (o && o.status === 'sand') cornerPicker(o, 'sand'); };
+ACT.pickCorner = d => {
+  const o = byId(d.id); if (!o) return;
+  const c = +d.c; closeModal();
+  let next = null;
+  const nx = d.mode === 'sand' ? waiting(o.line)[0] : null;
+  withUndo(`تمّ: ${hid(o.id)} جاهزة، ركن ${c}${nx ? ` · ${hid(nx.id)} فاتت عالتقشيط لحالها` : ''}`, o.id, () => {
+    if (d.mode === 'cut') {
+      logEv('finishCut', o.id, cutText(o, !!d.cf), { line:o.line });
+      useReservedLo(o);
+      sendToGlue(o);
+      logEv('readyNoSand', o.id, `حطّها بركن ${c} (بلا تقشيط)`, { line:o.line, sheets:o.sheets });
+    } else {
+      logEv('finishSand', o.id, `خلّص التقشيط، ركن ${c}`, { line:o.line, sheets:o.sheets });
+    }
+    o.status = 'ready'; o.corner = c; o.readyAt = Date.now();
+    // يلّي مستنية تقشيط بتفوت لحالها
+    if (d.mode === 'sand') {
+      next = waiting(o.line)[0];
+      if (next) { next.status = 'sand'; logEv('enterSand', next.id, 'دخلت التقشيط', { who:SYS, auto:1 }); }
+    }
+  });
+};
+
+/* =====================================================================
+   المرحلة 3: الرئيسية (المسئول ورامي)، شاشة أحمد، البحث، التوزيع والطابور
+   ===================================================================== */
+
+/* ---------- البحث برد جاهز ---------- */
+const norm = s => String(s || '').toLowerCase().replace(/[ً-ْـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[،,.\-]/g, ' ').trim();
+function matchOrders(q) {
+  const n = norm(q); if (!n) return [];
+  const digits = q.replace(/\D/g, '');
+  return S.orders.filter(o => norm(o.client).includes(n) || (digits && (o.id.includes(digits) || String(o.no) === digits)))
+    .sort((a, b) => (a.status === 'done') - (b.status === 'done') || b.no - a.no);
+}
+function sayStatus(o) {
+  const L = o.line;
+  switch (o.status) {
+    case 'new': return 'جديدة، بعد ما توزّعت على خط';
+    case 'queue': {
+      if (o.blocked) return `مستنية خامات، خط ${L}`;
+      const ahead = lineQueue(L).indexOf(o) + (onCut(L) ? 1 : 0);
+      if (!ahead) return `في الدور، هي الجاية على خط ${L}`;
+      return `في الدور، قبلها ${ahead === 1 ? 'طلبية وحدة' : ahead === 2 ? 'طلبيتين' : ahead + ' طلبيات'}`;
+    }
+    case 'cut': return `عالتقطيع هلّق، خط ${L}`;
+    case 'waitsand': return `خلصت تقطيع ومستنية تقشيط، خط ${L}`;
+    case 'sand': return `عالتقشيط هلّق، خط ${L}`;
+    case 'ready': return `جاهزة، ركن ${o.corner}`;
+    case 'done': return `تسلّمت ${fmtDay(o.doneAt)}`;
+  }
+  return '';
+}
+function answersHTML() {
+  if (!UI.q.trim()) return '';
+  const res = matchOrders(UI.q).slice(0, 6);
+  if (!res.length) return `<div class="empty">ما في طلبية بهالاسم أو هالرقم</div>`;
+  return res.map(o => `<div class="answer st-${o.status}${o.blocked ? ' blocked' : ''}" data-act="open" data-id="${o.id}" ${o.blocked ? 'style="border-inline-start-color:var(--red)"' : ''}>
+    <div class="grow"><div class="say" ${o.blocked ? 'style="color:var(--red)"' : ''}>${sayStatus(o)}</div><div class="nm">${esc(o.client)} ${glueTag(o)}</div></div>
+    <div class="no num">${hid(o.id)}</div></div>`).join('');
+}
+const searchBox = () => `<div><div class="search"><input id="q" type="search" autocomplete="off" placeholder="اكتب اسم العميل أو رقم الطلبية" value="${esc(UI.q)}">${ic('search')}</div><div id="answers" class="answers">${answersHTML()}</div></div>`;
+
+/* ---------- الجاهزة ---------- */
+function readyRow(o, opt = {}) {
+  const r = ROLE();
+  return `<div class="readyrow" data-act="open" data-id="${o.id}">
+    <div class="corner"><small>ركن</small><b class="num">${o.corner}</b></div>
+    <div class="grow"><div class="client">${esc(o.client)} ${glueTag(o)}</div>
+      <div class="small muted"><span class="num">${hid(o.id)}</span> · جاهزة من ${fmtT(o.readyAt, fmtDay(o.readyAt) !== fmtDay(Date.now()))}${o.scrap ? ` · <span style="color:var(--sp-ink);font-weight:600">فيها فضلة ${sz(o.scrap)}</span>` : ''}</div></div>
+    ${!r.view && !opt.noBtn ? `<button class="btn sm" data-act="deliver" data-id="${o.id}">${ic('truck')} تسلّمت</button>` : ''}
+  </div>`;
+}
+function readyBlock(limit) {
+  const list = readyList();
+  const shown = limit ? list.slice(0, limit) : list;
+  return `<section><div class="sec-title">${ic('ready')} الجاهزة <span class="cnt">${list.length}</span>${limit && list.length > limit ? `<button class="more" data-act="tab" data-t="ready">كلها ←</button>` : ''}</div>
+    <div class="stack">${shown.map(o => readyRow(o)).join('') || '<div class="empty">ما في شي جاهز هلّق</div>'}</div></section>`;
+}
+SCREENS.ready = () => {
+  const list = readyList();
+  const wrap = h => ROLE().desk ? `<div class="wide">${h}</div>` : h;
+  if (!list.length) return wrap('<div class="empty">ما في شي جاهز هلّق</div>');
+  return wrap([1, 2, 3].map(c => {
+    const g = list.filter(o => o.corner === c);
+    return `<div class="cornergrp"><h3>ركن ${c} <span class="cnt" style="font-size:12px;background:var(--line2);border-radius:99px;padding:0 8px">${g.length}</span></h3>
+      <div class="stack">${g.map(o => readyRow(o)).join('') || '<div class="empty">فاضي</div>'}</div></div>`;
+  }).join(''));
+};
+
+/* ---------- كارت الخط ---------- */
+function mach(o, st, label) {
+  return `<div class="mach st-${st}${o ? '' : ' free'}" ${o ? `data-act="open" data-id="${o.id}"` : ''}>
+    <span class="lbl">${label}</span><span class="v grow">${o ? `<span class="num">${hid(o.id)}</span> · ${esc(o.client)}` : 'فاضية'}</span>
+    ${o ? glueTag(o) : ''}
+    ${o && specialLines(o).length ? `<span style="color:var(--sp-ink)">${ic('layers')}</span>` : ''}</div>`;
+}
+function qitem(o, i, len, opt) {
+  const blocked = o.blocked;
+  return `<div class="qitem${blocked ? ' blocked' : ''}" data-act="open" data-id="${o.id}" ${opt.drag ? `draggable="true" data-drag="${o.id}" data-dropq="1"` : ''}>
+    ${opt.drag ? `<span class="h">${ic('grip')}</span>` : ''}
+    <span class="pos num">${i + 1}</span>
+    <span class="grow"><b class="num">${hid(o.id)}</b> ${esc(o.client)} <span class="muted small">· ${o.sheets} لوح</span></span>
+    ${o.urgent ? `<span class="tag urgent">${ic('bolt')}</span>` : ''}
+    ${specialLines(o).length ? `<span style="color:var(--sp-ink)" title="دوبل أو فضلة">${ic('layers')}</span>` : ''}
+    ${blocked ? `<span class="tag block">${ic('alert')}</span>` : ''}
+    ${opt.move ? `<button class="btn icon sm" data-act="qmove" data-id="${o.id}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="لفوق">${ic('up')}</button>
+      <button class="btn icon sm" data-act="qmove" data-id="${o.id}" data-dir="1" ${i === len - 1 ? 'disabled' : ''} aria-label="لتحت">${ic('down')}</button>` : ''}
+    ${opt.full && opt.move ? `<button class="btn icon sm" data-act="urgent" data-id="${o.id}" title="مستعجلة" style="${o.urgent ? 'background:#111827;color:#fff' : ''}">${ic('bolt')}</button>` : ''}
+  </div>`;
+}
+function lineCard(l, opt = {}) {
+  const r = ROLE(), q = lineQueue(l), w = waiting(l);
+  const show = opt.full ? q : q.slice(0, 3);
+  const qo = { drag: opt.full && r.mgmt, move: r.mgmt, full: opt.full };
+  return `<section class="panel linecard${opt.full && r.mgmt ? ' dropzone' : ''}" data-line="${l}">
+    <div class="lh"><h2>خط ${l}</h2><span class="muted small">${q.length} بالدور</span></div>
+    ${mach(onCut(l), 'cut', 'عالتقطيع')}
+    <div class="waitbox st-waitsand"><div class="wh">مستنية تقشيط <span class="num">(${w.length})</span>${w.length ? '' : ' <span class="muted" style="font-weight:500">· ما في</span>'}</div>${w.length ? waitQueue(w) : ''}</div>
+    ${mach(onSand(l), 'sand', 'عالتقشيط')}
+    <div class="small muted" style="margin-top:10px;font-weight:600">${opt.full ? 'الطابور' + (r.mgmt ? ' · اسحب لترتّب' : '') : 'أول 3 بالدور'}</div>
+    <div class="qlist">${show.map((o, i) => qitem(o, i, q.length, qo)).join('') || '<div class="empty">الطابور فاضي</div>'}</div>
+    ${!opt.full && q.length > 3 ? `<div class="muted small" style="margin-top:6px">+ ${q.length - 3} كمان بالدور</div>` : ''}
+  </section>`;
+}
+
+/* ---------- الرئيسية: المسئول ورامي ---------- */
+SCREENS.home = () => {
+  const r = ROLE(); let h = '';
+  if (r.mgmt) {
+    const reps = openReports(), nw = newList();
+    if (reps.length || nw.length) {
+      h += `<div class="alertbar">`;
+      reps.forEach(rp => { const o = byId(rp.oid); h += `<button class="r" data-act="reportSheet" data-r="${rp.id}">${ic('alert')}<span class="grow">بلاغ خط ${rp.line}: <span class="num">${hid(rp.oid)}</span> ${esc(o ? o.client : '')} · ${esc(rp.reason)}</span>ردّ ←</button>`; });
+      if (nw.length) h += `<button class="n" data-act="newSheet">${ic('plus')}<span class="grow">${nw.length === 1 ? 'طلبية جديدة ما توزّعت' : nw.length === 2 ? 'طلبيتين جداد ما توزّعوا' : nw.length + ' طلبيات جديدة ما توزّعت'}</span>وزّع ←</button>`;
+      h += `</div>`;
+    }
+  }
+  h += searchBox();
+  h += readyBlock();
+  h += lineCard(1) + lineCard(2);
+  return h;
+};
+
+/* ---------- أحمد: شاشة الكمبيوتر ---------- */
+function loSuggestHTML() {
+  const D = UI.draft, code = colorCode(D.color);
+  if (!code) return '';
+  const los = S.leftovers.filter(x => x.status === 'avail' && x.color === code).sort((a, b) => b.w * b.h - a.w * a.h);
+  if (!los.length) return `<div class="muted small">ما في فضل من هاللون بالمكان.</div>`;
+  const pick = D.loPick && los.find(x => x.id === D.loPick);
+  const chosen = D.lo && los.find(x => x.id === D.lo);
+  return `<div class="suggest">
+    <div class="t">${ic('piece')} عندك ${los.length === 1 ? 'فضلة وحدة' : los.length === 2 ? 'فضلتين' : los.length + ' فضل'} من هاللون: ${los.map(sz).join('، ')}</div>
+    <div class="los">${los.map(x => `<button type="button" class="lobtn${(chosen && chosen.id === x.id) || (pick && pick.id === x.id) ? ' on' : ''}" data-act="pickLo" data-lo="${x.id}"><span>${sz(x)}</span></button>`).join('')}</div>
+    ${chosen ? `<div style="margin-top:8px;display:flex;gap:8px;align-items:center">${ic('check')} <b class="grow">رح تستعملها بهالطلبية: ${sz(chosen)}</b><button type="button" class="btn sm" data-act="unLo">إلغاء</button></div>`
+      : pick ? `<div style="margin-top:8px;display:flex;gap:8px;align-items:center"><span class="grow small">${sz(pick)} · من ${esc(pick.from)}</span><button type="button" class="btn sm dark" data-act="useLo">رح استعملها بهالطلبية</button></div>` : ''}
+  </div>`;
+}
+function colorCode(v) { const t = String(v || '').trim().split(/\s+/)[0].toUpperCase(); return t; }
+const refreshSuggest = () => { const el = document.getElementById('loSuggest'); if (el) el.innerHTML = loSuggestHTML(); };
+ACT.pickLo = d => { UI.draft.loPick = d.lo; saveUI(); refreshSuggest(); };
+ACT.useLo = () => { UI.draft.lo = UI.draft.loPick; UI.draft.loPick = null; saveUI(); refreshSuggest(); };
+ACT.unLo = () => { UI.draft.lo = null; saveUI(); refreshSuggest(); };
+
+function newOrderForm() {
+  const D = UI.draft;
+  const f = (k, lbl, attrs = '', cls = '') => `<div class="fld ${cls}"><label>${lbl}</label><input data-f="${k}" value="${esc(D[k] || '')}" ${attrs}></div>`;
+  return `<section class="panel"><h2>${ic('plus')} طلبية جديدة <span class="cnt num">${hid(pad4(S.seq + 1))}</span></h2>
+    <div class="form">
+      ${f('client', 'اسم العميل', 'placeholder="مثلاً: أبو جورج"', 'full')}
+      <div class="fld full"><label>كود اللون</label><input data-f="color" list="colorsDL" value="${esc(D.color || '')}" placeholder="اكتب الكود، مثلاً H1145">
+        <datalist id="colorsDL">${COLORS.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('')}</datalist></div>
+      <div class="full" id="loSuggest">${loSuggestHTML()}</div>
+      ${f('sheets', 'عدد الألواح', 'type="number" min="1" inputmode="numeric"')}
+      ${f('meters', 'أمتار التقشيط <i>(0 = بلا تقشيط)</i>', 'type="number" min="0" inputmode="numeric" placeholder="0"')}
+      ${f('dbl', 'الدوبل <i>(عدد القطع)</i>', 'type="number" min="0" inputmode="numeric" placeholder="—"')}
+      <div class="fld"><label>فضلة طالعة <i>(مم)</i></label><div class="pair"><input data-f="sw" value="${esc(D.sw || '')}" type="number" min="0" placeholder="طول"><span>×</span><input data-f="sh" value="${esc(D.sh || '')}" type="number" min="0" placeholder="عرض"></div></div>
+      <div class="fld full"><label>الخط</label><div class="seg">${[['', 'بعدين'], ['1', 'خط 1'], ['2', 'خط 2']].map(([v, n]) => `<button type="button" class="${(D.line || '') === v ? 'on' : ''}" data-act="dline" data-v="${v}">${n}</button>`).join('')}</div></div>
+      <label class="chk full"><input type="checkbox" data-f="urgent" ${D.urgent ? 'checked' : ''}> ${ic('bolt')} مستعجلة</label>
+      <div class="fld full"><label>ملاحظات</label><textarea data-f="notes" placeholder="أي شي تاني">${esc(D.notes || '')}</textarea></div>
+      <button class="btn dark full" style="padding:11px" data-act="createOrder">${ic('check')} سجّل الطلبية</button>
+    </div></section>`;
+}
+ACT.dline = (d, el) => { UI.draft.line = d.v; saveUI(); el.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el)); };
+
+function unassignedPanel() {
+  const nw = newList(), r = ROLE();
+  return `<section class="panel"><h2>ما توزّعت <span class="cnt">${nw.length}</span></h2>
+    <div class="stack">${nw.map(o => `<div ${r.desk ? `draggable="true" data-drag="${o.id}"` : ''}>${cardHTML(o, { compact:true })}
+      ${r.mgmt ? `<div class="row" style="margin-top:6px"><span class="small muted grow">وزّعها على:</span><button class="btn sm" data-act="assign" data-id="${o.id}" data-l="1">خط 1</button><button class="btn sm" data-act="assign" data-id="${o.id}" data-l="2">خط 2</button></div>` : ''}</div>`).join('')
+      || '<div class="empty">كل الطلبيات متوزّعة</div>'}</div></section>`;
+}
+
+SCREENS.board = () => `<div class="dgrid">
+  <div class="col">${newOrderForm()}${unassignedPanel()}</div>
+  <div class="col">${searchBox()}<div class="lines2">${lineCard(1, { full:true })}${lineCard(2, { full:true })}</div>
+    <section class="panel">${readyBlock(6)}</section></div>
+  <div class="col col-l">${typeof reportsPanel === 'function' ? reportsPanel() : ''}${typeof loPanel === 'function' ? loPanel() : ''}${backupPanel()}</div>
+</div>`;
+
+/* ---------- نسخة احتياطية (ملف JSON) ---------- */
+function backupPanel() {
+  return `<section class="panel"><h2>${ic('file')} نسخة احتياطية</h2>
+    <p class="small muted" style="margin:0 0 10px">احفظ كل البيانات بملف على الكمبيوتر، ورجّعها وقت ما بدك.</p>
+    <div class="row" style="flex-wrap:wrap"><button class="btn dark" data-act="backupSave">${ic('download')} احفظ نسخة</button><button class="btn" data-act="backupPick">${ic('upload')} استرجع نسخة</button></div>
+    <input type="file" id="restoreIn" accept=".json,application/json" hidden></section>`;
+}
+ACT.backupSave = () => {
+  const d = new Date(), name = `atelier-borji-${d.getUTCDate()}-${d.getUTCMonth() + 1}.json`;
+  const blob = new Blob([JSON.stringify({ app:'atelier-borji', savedAt:Date.now(), data:S })], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  toast(`انحفظت النسخة: ${name}`);
+};
+ACT.backupPick = () => { const inp = document.getElementById('restoreIn'); if (inp) { inp.value = ''; inp.click(); } };
+let pendingRestore = null;
+document.addEventListener('change', e => {
+  if (e.target.id !== 'restoreIn' || !e.target.files || !e.target.files[0]) return;
+  const f = e.target.files[0], rd = new FileReader();
+  rd.onload = () => {
+    let obj = null;
+    try { obj = JSON.parse(rd.result); } catch (x) {}
+    const data = obj && (obj.data || obj);
+    if (!data || data.v !== 2 || !Array.isArray(data.orders) || !Array.isArray(data.events) || !Array.isArray(data.leftovers) || !Array.isArray(data.reports)) {
+      toast('هالملف مش نسخة من Atelier Borji'); return;
+    }
+    pendingRestore = data;
+    openModal('نرجّع هالنسخة؟', `
+      <p style="margin:0 0 8px;font-weight:600">${esc(f.name)}${obj.savedAt ? ` · انحفظت ${fmtT(obj.savedAt)}` : ''}</p>
+      <dl class="kv"><dt>الطلبيات</dt><dd class="num">${data.orders.length}</dd><dt>الفضلات</dt><dd class="num">${data.leftovers.filter(x => x.status === 'avail').length}</dd><dt>الحركات بالسجل</dt><dd class="num">${data.events.length}</dd></dl>
+      <p class="muted" style="margin:0 0 12px">كل البيانات يلّي هلّق على هالجهاز رح تنمسح وتحل محلها النسخة.</p>
+      <div class="actions"><button class="btn dark" data-act="doRestore">${ic('upload')} إيه، رجّع النسخة</button><button class="btn" data-act="close">لأ</button></div>`);
+  };
+  rd.readAsText(f);
+});
+ACT.doRestore = () => {
+  if (!pendingRestore) return;
+  S = pendingRestore; pendingRestore = null;
+  UI.draft = {}; UI.q = ''; UI.loFilter = '';
+  save(); closeModal(); render();
+  toast('رجعت النسخة');
+};
+
+/* ---------- الطلبيات: بحث وفلتر ---------- */
+function ordListHTML() {
+  let list = UI.q.trim() ? matchOrders(UI.q) : [...S.orders].sort((a, b) => (a.status === 'done') - (b.status === 'done') || b.no - a.no);
+  if (UI.ordFilter !== 'all') list = list.filter(o => o.status === UI.ordFilter);
+  return list.map(o => cardHTML(o, { compact:true, chip:true, showLine:true })).join('') || '<div class="empty">ما في طلبيات</div>';
+}
+SCREENS.orders = () => {
+  const counts = st => S.orders.filter(o => o.status === st).length;
+  const h = `<div class="search"><input id="q" type="search" autocomplete="off" placeholder="دوّر بالاسم أو الرقم" value="${esc(UI.q)}">${ic('search')}</div>
+    <div class="filters">${[['all', 'الكل'], ...Object.entries(STAGES).map(([k, v]) => [k, v.name])].map(([k, n]) => `<button class="fbtn${UI.ordFilter === k ? ' on' : ''}" data-act="ordFilter" data-v="${k}">${n}${k !== 'all' ? ` <span class="num">${counts(k)}</span>` : ''}</button>`).join('')}</div>
+    <div class="stack" id="ordList">${ordListHTML()}</div>`;
+  return ROLE().desk ? `<div class="wide">${h}</div>` : h;
+};
+ACT.ordFilter = d => { UI.ordFilter = d.v; render(); };
+
+/* البحث بيحدّث النتايج بس، علشان الكتابة ما تقطعش */
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'q') {
+    UI.q = t.value;
+    const a = document.getElementById('answers'); if (a) a.innerHTML = answersHTML();
+    const l = document.getElementById('ordList'); if (l) l.innerHTML = ordListHTML();
+    return;
+  }
+  if (t.dataset && t.dataset.f) {
+    UI.draft[t.dataset.f] = t.type === 'checkbox' ? t.checked : t.value;
+    if (t.dataset.f === 'color') { UI.draft.lo = null; UI.draft.loPick = null; refreshSuggest(); }
+    saveUI();
+  }
+});
+
+/* ---------- تسجيل الطلبية ---------- */
+function groupMsg(o) {
+  return `طلبية ${hid(o.id)}\nالعميل: ${o.client}\nاللون: ${colorLabel(o.color)}\nعدد الألواح: ${o.sheets}\nأمتار التقشيط: ${o.meters} م${o.dbl ? `\nدوبل: ${o.dbl} قطع` : ''}`;
+}
+ACT.createOrder = () => {
+  const D = UI.draft;
+  const client = (D.client || '').trim(), color = colorCode(D.color), sheets = parseInt(D.sheets, 10);
+  const miss = [!client && 'اسم العميل', !color && 'كود اللون', !(sheets > 0) && 'عدد الألواح'].filter(Boolean);
+  if (miss.length) {
+    toast('ناقص: ' + miss.join('، '));
+    miss.forEach(m => { const k = { 'اسم العميل':'client', 'كود اللون':'color', 'عدد الألواح':'sheets' }[m]; const el = document.querySelector(`[data-f="${k}"]`); if (el) el.style.borderColor = 'var(--ink)'; });
+    return;
+  }
+  const no = ++S.seq, id = pad4(no), line = D.line ? +D.line : null;
+  const sw = parseInt(D.sw, 10), sh = parseInt(D.sh, 10);
+  const o = { no, id, client, color, sheets, meters: Math.max(0, parseInt(D.meters, 10) || 0), dbl: Math.max(0, parseInt(D.dbl, 10) || 0),
+    scrap: sw > 0 && sh > 0 ? { w:sw, h:sh } : null, usedLo:null, line, status: line ? 'queue' : 'new', urgent: !!D.urgent,
+    notes: (D.notes || '').trim(), blocked:false, corner:null, qpos:0, newNote:false, tookLo:null, at:Date.now(), readyAt:null, doneAt:null, waitAt:null };
+  S.orders.push(o);
+  logEv('create', id, 'سجّلها');
+  const lo = D.lo && S.leftovers.find(x => x.id === D.lo && x.status === 'avail');
+  if (lo) { lo.status = 'reserved'; lo.oid = id; o.usedLo = { id:lo.id, w:lo.w, h:lo.h }; logEv('loReserve', id, `حجز الفضلة ${sz(lo)} للطلبية`); }
+  if (line) { placeInQueue(o); logEv('assign', id, 'وزّعها على خط ' + line); }
+  if (o.urgent) logEv('urgent', id, 'علّمها مستعجلة');
+  UI.draft = {}; commit();
+  openModal(`تسجّلت طلبية <span class="num">${hid(id)}</span>`, `
+    ${cardHTML(o, { chip:true })}
+    <p class="small muted" style="margin:12px 0 6px">رسالة جروب الفواتير جاهزة:</p>
+    <pre style="background:var(--surface2);border-radius:10px;padding:10px 12px;margin:0 0 12px;white-space:pre-wrap;font-family:inherit">${esc(groupMsg(o))}</pre>
+    <div class="actions"><button class="btn dark" data-act="copyMsg" data-id="${id}">${ic('copy')} انسخ رسالة الجروب</button><button class="btn" data-act="close">تمام</button></div>`);
+};
+function placeInQueue(o) {
+  const q = lineQueue(o.line).filter(x => x !== o);
+  if (o.urgent) q.unshift(o); else q.push(o);
+  q.forEach((x, i) => x.qpos = i + 1);
+}
+ACT.copyMsg = d => {
+  const o = byId(d.id); if (!o) return;
+  const txt = groupMsg(o);
+  const done = () => { logEv('copy', o.id, 'نسخ رسالة الجروب'); save(); toast('انّسخت، الصقها بالجروب'); };
+  const fallback = () => { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); done(); };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(done, fallback); else fallback();
+};
+
+/* ---------- التوزيع والطابور ---------- */
+ACT.assign = d => {
+  const o = byId(d.id); if (!o || o.status !== 'new') return;
+  o.status = 'queue'; o.line = +d.l; placeInQueue(o);
+  logEv('assign', o.id, 'وزّعها على خط ' + o.line);
+  commit(); toast(`${hid(o.id)} راحت على خط ${o.line}`);
+  if (document.querySelector('#modal.show') && UI.role !== 'ahmed') ACT.newSheet();
+};
+ACT.newSheet = () => {
+  const nw = newList();
+  if (!nw.length) { closeModal(); return; }
+  openModal('وزّع الطلبيات الجديدة', `<div class="stack">${nw.map(o => `<div>${cardHTML(o, { compact:true })}<div class="row" style="margin-top:6px"><span class="small muted grow">على أيّا خط؟</span><button class="btn" data-act="assign" data-id="${o.id}" data-l="1">خط 1</button><button class="btn" data-act="assign" data-id="${o.id}" data-l="2">خط 2</button></div></div>`).join('')}</div>`);
+};
+ACT.qmove = d => {
+  const o = byId(d.id); if (!o) return;
+  const q = lineQueue(o.line), i = q.indexOf(o), j = i + (+d.dir);
+  if (j < 0 || j >= q.length) return;
+  moveTo(o, o.line, j);
+};
+ACT.urgent = d => {
+  const o = byId(d.id); if (!o) return;
+  o.urgent = !o.urgent;
+  if (o.urgent && o.status === 'queue') { placeInQueue(o); logEv('urgent', o.id, 'علّمها مستعجلة'); }
+  else logEv('unurgent', o.id, 'شال المستعجل');
+  commit();
+  if (document.querySelector('#modal.show')) openOrder(o.id);
+};
+function moveTo(o, line, idx) {
+  if (!o) return;
+  if (o.status === 'new') { o.status = 'queue'; o.line = line; const q = lineQueue(line).filter(x => x !== o); q.splice(idx, 0, o); q.forEach((x, i) => x.qpos = i + 1); logEv('assign', o.id, 'وزّعها على خط ' + line); commit(); return; }
+  if (o.status !== 'queue') return;
+  const from = o.line, fromIdx = lineQueue(from).indexOf(o);
+  const q = lineQueue(line).filter(x => x !== o);
+  idx = Math.max(0, Math.min(idx, q.length)); q.splice(idx, 0, o);
+  o.line = line; q.forEach((x, i) => x.qpos = i + 1);
+  if (from !== line) {
+    lineQueue(from).forEach((x, i) => x.qpos = i + 1);
+    const rp = reportFor(o.id); if (rp) rp.line = line;
+    logEv('moveLine', o.id, `نقلها من خط ${from} لخط ${line}`);
+  } else if (fromIdx !== idx) logEv('reorder', o.id, `غيّر ترتيبها في الطابور من ${fromIdx + 1} لـ ${idx + 1}`);
+  else return;
+  commit();
+}
+
+/* السحب والإفلات على الكمبيوتر */
+function afterRender() {
+  document.querySelectorAll('[data-drag]').forEach(el => {
+    el.addEventListener('dragstart', e => { el.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', el.dataset.drag); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  });
+  document.querySelectorAll('[data-dropq]').forEach(el => {
+    el.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); el.classList.add('over'); });
+    el.addEventListener('dragleave', () => el.classList.remove('over'));
+    el.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation(); el.classList.remove('over');
+      const id = e.dataTransfer.getData('text/plain'), t = byId(el.dataset.drag);
+      if (!id || !t || id === t.id) return;
+      moveTo(byId(id), t.line, lineQueue(t.line).filter(x => x.id !== id).indexOf(t));
+    });
+  });
+  document.querySelectorAll('.dropzone').forEach(z => {
+    z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('over'); });
+    z.addEventListener('dragleave', e => { if (!z.contains(e.relatedTarget)) z.classList.remove('over'); });
+    z.addEventListener('drop', e => {
+      e.preventDefault(); z.classList.remove('over');
+      const id = e.dataTransfer.getData('text/plain'), l = +z.dataset.line;
+      if (id) moveTo(byId(id), l, lineQueue(l).filter(x => x.id !== id).length);
+    });
+  });
+}
+
+/* =====================================================================
+   المرحلة 4: البلاغات، الفضلات، التسليم، الخط الزمني، الأسبوع، السجل
+   ===================================================================== */
+
+/* ---------- بلاغ "مش جاهزة" ---------- */
+let pendingReason = null;
+const REASONS = ['الألواح ما نزلت', 'التقشيط مش موجود'];
+ACT.notReady = d => {
+  const o = byId(d.id); if (!o) return;
+  pendingReason = null;
+  openModal(`<span class="num">${hid(o.id)}</span> مش جاهزة؟`, `
+    <p class="muted" style="margin:0 0 8px">${esc(o.client)} · اختار السبب، والبلاغ بيوصل لأحمد والمسئول هلّق.</p>
+    <div class="reasons">${REASONS.map(r => `<button data-act="reason" data-v="${r}">${r}</button>`).join('')}
+      <button data-act="reason" data-v="other">غير ذلك</button></div>
+    <input class="inp" id="otherR" placeholder="اكتب السبب بسطر" style="display:none;margin-bottom:10px">
+    <button class="big" style="--c:var(--red)" data-act="sendReport" data-id="${o.id}">${ic('alert')} بلّغ الإدارة</button>`);
+};
+ACT.reason = (d, el) => {
+  pendingReason = d.v;
+  el.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el));
+  const inp = document.getElementById('otherR');
+  inp.style.display = d.v === 'other' ? 'block' : 'none';
+  if (d.v === 'other') inp.focus();
+};
+ACT.sendReport = d => {
+  const o = byId(d.id); if (!o) return;
+  let reason = pendingReason === 'other' ? (document.getElementById('otherR').value || '').trim() : pendingReason;
+  if (!reason) { toast(pendingReason === 'other' ? 'اكتب السبب' : 'اختار السبب الأول'); return; }
+  const rp = { id:'R' + (++S.repSeq), oid:o.id, line:o.line, reason, t:Date.now(), status:'open', live:1, seenAhmed:false, seenMgr:false, seenSup:true };
+  S.reports.push(rp);
+  o.blocked = true; o.blockReason = reason;
+  logEv('report', o.id, `بلّغ "مش جاهزة": ${reason}`, { red:1, line:o.line });
+  closeModal(); commit();
+  toast(`${ic('check')} البلاغ وصل لأحمد والمسئول`);
+};
+
+function reportBlock(rp) {
+  const o = byId(rp.oid), r = ROLE();
+  const cands = lineQueue(rp.line).filter(x => x.id !== rp.oid && !x.blocked).slice(0, 3);
+  return `<div class="report">
+    <div class="rt">${ic('alert')} خط ${rp.line} · طلبية <span class="num">${hid(rp.oid)}</span></div>
+    <div class="rs"><b>${esc(rp.reason)}</b> · ${esc(o ? o.client : '')}<br><span class="muted small">من ${fmtT(rp.t, fmtDay(rp.t) !== fmtDay(Date.now()))} · المكنة واقفة صرلها ${fmtDur(Date.now() - rp.t)}</span></div>
+    ${r.mgmt ? `<div class="acts">
+      ${cands.map(c => `<button class="btn sm" data-act="promote" data-r="${rp.id}" data-o2="${c.id}">قدّم <span class="num">${hid(c.id)}</span></button>`).join('')}
+      <button class="btn sm dark" data-act="clearBlock" data-id="${rp.oid}">${ic('check')} جاهزة للتقطيع</button></div>` : ''}
+  </div>`;
+}
+function reportsPanel() {
+  const reps = openReports();
+  const waitingMat = S.orders.filter(o => o.blocked && !reportFor(o.id));
+  return `<section class="panel"><h2 style="${reps.length ? 'color:var(--red)' : ''}">${ic('alert')} البلاغات المفتوحة <span class="cnt">${reps.length}</span></h2>
+    <div class="stack">${reps.map(reportBlock).join('') || '<div class="empty">ما في بلاغات مفتوحة</div>'}
+    ${waitingMat.map(o => `<div class="row" style="border:1px solid var(--red-line);border-radius:10px;padding:8px 10px"><span class="grow small"><b class="num">${hid(o.id)}</b> ${esc(o.client)}<br><span class="muted">مستنية خامات: ${esc(o.blockReason || '')}</span></span><button class="btn sm" data-act="clearBlock" data-id="${o.id}">جاهزة للتقطيع</button></div>`).join('')}
+    </div></section>`;
+}
+ACT.reportSheet = d => {
+  const rp = S.reports.find(x => x.id === d.r); if (!rp) return;
+  openModal('بلاغ "مش جاهزة"', `${reportBlock(rp)}<p class="small muted" style="margin:10px 0 0">"قدّم" بتطلّع طلبية تانية أول الطابور، والمشرف بيشوفها عنده هلّق.</p>`);
+};
+ACT.promote = d => {
+  const rp = S.reports.find(x => x.id === d.r), o2 = byId(d.o2); if (!rp || !o2) return;
+  const q = lineQueue(rp.line).filter(x => x !== o2); q.unshift(o2); q.forEach((x, i) => x.qpos = i + 1);
+  rp.status = 'resolved'; rp.res = { type:'promote', oid2:o2.id, who:ROLE().who, t:Date.now() }; rp.seenSup = false;
+  logEv('promote', rp.oid, `قدّم طلبية ${hid(o2.id)} مكانها`);
+  closeModal(); commit();
+  toast(`المشرف بيشوف هلّق: الطلبية الجاية ${hid(o2.id)}`);
+};
+ACT.clearBlock = d => {
+  const o = byId(d.id); if (!o) return;
+  o.blocked = false; o.blockReason = '';
+  const rp = reportFor(o.id);
+  if (rp) { rp.status = 'resolved'; rp.res = { type:'clear', who:ROLE().who, t:Date.now() }; rp.seenSup = false; }
+  logEv('clear', o.id, 'علّمها جاهزة للتقطيع');
+  closeModal(); commit(); toast(`${hid(o.id)} رجعت عادية`);
+};
+
+/* ---------- الفضلات ---------- */
+const isOld = x => Date.now() - x.at > 90 * DAY;
+function loRow(x, opt = {}) {
+  const r = ROLE();
+  return `<div class="lorow${opt.mini ? ' mini' : ''}">
+    <span class="sw" style="background:${colorInfo(x.color)[2]}"></span>
+    <span class="losz">${sz(x)}</span>
+    <div class="grow"><div class="d">${colorBadge(x.color)} <b>${esc(colorInfo(x.color)[1])}</b></div>
+      <div class="d">${x.status === 'reserved' ? `محجوزة لطلبية <span class="num">${hid(x.oid)}</span>` : `من ${esc(x.from)} · ${fmtDay(x.at)}`} ${isOld(x) && x.status === 'avail' ? '<span class="tag old">قديمة</span>' : ''}</div></div>
+    ${r.mgmt && x.status === 'avail' && !opt.mini ? `<button class="btn sm" data-act="loUsed" data-lo="${x.id}">استُخدمت</button>` : ''}
+  </div>`;
+}
+const availLo = () => S.leftovers.filter(x => x.status === 'avail').sort((a, b) => b.w * b.h - a.w * a.h);
+SCREENS.lo = () => {
+  const r = ROLE(), all = availLo();
+  const codes = [...new Set(all.map(x => x.color))];
+  if (UI.loFilter && !codes.includes(UI.loFilter)) UI.loFilter = '';
+  const list = UI.loFilter ? all.filter(x => x.color === UI.loFilter) : all;
+  const res = S.leftovers.filter(x => x.status === 'reserved');
+  let h = `<div class="sec-title">${ic('piece')} الفضل الموجودة بالمكان <span class="cnt">${all.length}</span></div>
+    <div class="filters"><button class="fbtn${!UI.loFilter ? ' on' : ''}" data-act="loFilter" data-v="">كل الألوان</button>${codes.map(c => `<button class="fbtn${UI.loFilter === c ? ' on' : ''}" data-act="loFilter" data-v="${c}">${c}</button>`).join('')}</div>
+    <div class="stack">${list.map(x => loRow(x)).join('') || '<div class="empty">ما في فضل</div>'}</div>`;
+  if (res.length) h += `<div class="sec-title" style="margin-top:6px">محجوزة لطلبيات <span class="cnt">${res.length}</span></div><div class="stack">${res.map(x => loRow(x)).join('')}</div>`;
+  if (UI.role === 'ahmed') h += `<section class="panel"><h2>${ic('plus')} ضيف فضلة يدوي</h2>
+    <div class="row" style="flex-wrap:wrap"><input class="inp" id="loW" type="number" placeholder="طول مم" style="width:110px"><span>×</span><input class="inp" id="loH" type="number" placeholder="عرض مم" style="width:110px">
+    <input class="inp" id="loC" list="colorsDL2" placeholder="كود اللون" style="width:150px"><datalist id="colorsDL2">${COLORS.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('')}</datalist>
+    <button class="btn dark" data-act="loAdd">ضيف</button></div></section>`;
+  return r.desk ? `<div class="wide">${h}</div>` : h;
+};
+function loPanel() {
+  const all = availLo();
+  return `<section class="panel"><div class="sec-title">${ic('piece')} الفضلات <span class="cnt">${all.length}</span><button class="more" data-act="tab" data-t="lo">كلها ←</button></div>
+    <div class="stack">${all.slice(0, 5).map(x => loRow(x, { mini:true })).join('') || '<div class="empty">ما في فضل</div>'}</div></section>`;
+}
+ACT.loFilter = d => { UI.loFilter = d.v; render(); };
+ACT.loUsed = d => {
+  const x = S.leftovers.find(l => l.id === d.lo); if (!x) return;
+  withUndo(`الفضلة ${sz(x)} تعلّمت استُخدمت`, null, () => { x.status = 'used'; logEv('loUsed', null, `علّم الفضلة ${sz(x)} (${x.color}) استُخدمت`); });
+};
+ACT.loAdd = () => {
+  const w = parseInt(document.getElementById('loW').value, 10), h = parseInt(document.getElementById('loH').value, 10), c = colorCode(document.getElementById('loC').value);
+  if (!(w > 0 && h > 0 && c)) { toast('اكتب المقاس وكود اللون'); return; }
+  S.leftovers.push({ id:'L' + (++S.loSeq), w, h, color:c, from:'إضافة يدوي', at:Date.now(), status:'avail', oid:null });
+  logEv('loAdd', null, `ضاف فضلة يدوي ${sz({ w, h })} (${c})`);
+  commit(); toast('الفضلة انضافت للقايمة');
+};
+
+/* ---------- التسليم ---------- */
+ACT.deliver = d => {
+  const o = byId(d.id); if (!o || o.status !== 'ready') return;
+  if (o.glue) {
+    openModal(`ما فيك تسلّم <span class="num">${hid(o.id)}</span> هلّق`, `
+      <p style="font-size:17px;font-weight:600;margin:0 0 6px">⏳ الدوبل بعدو عالكولة.</p>
+      <p class="muted" style="margin:0 0 14px">الطلبية ما بتتسلّم ناقصة. لما ترجع شقف الدوبل وتنضم للطلبية، دوس "الدوبل جاهز" وبعدين سلّم.</p>
+      <div class="actions">${!ROLE().view ? `<button class="btn dark" data-act="glueDone" data-id="${o.id}">الدوبل جاهز</button>` : ''}<button class="btn" data-act="close">تمام</button></div>`);
+    return;
+  }
+  if (o.scrap) {
+    openModal(`تسليم <span class="num">${hid(o.id)}</span>`, `
+      <p style="margin:0 0 4px;font-size:15px">${esc(o.client)} · ركن ${o.corner}</p>
+      <p style="font-size:22px;font-weight:700;margin:10px 0 14px">العميل أخد الفضلة ${sz(o.scrap)}؟</p>
+      <div class="stack"><button class="big" style="--c:#15803d" data-act="doDeliver" data-id="${o.id}" data-took="1">${ic('check')} إيه، أخدها</button>
+      <button class="big plain" data-act="doDeliver" data-id="${o.id}" data-took="0">لأ، بتروح لقايمة الفضلات</button></div>`);
+    return;
+  }
+  ACT.doDeliver({ id:o.id, took:'' });
+};
+ACT.doDeliver = d => {
+  const o = byId(d.id); if (!o || o.glue) return;
+  const took = d.took === '1';
+  closeModal();
+  withUndo(`تسلّمت: ${hid(o.id)}${o.scrap && !took ? ` · الفضلة ${sz(o.scrap)} دخلت القايمة` : ''}`, o.id, () => {
+    o.status = 'done'; o.doneAt = Date.now(); o.tookLo = o.scrap ? took : null;
+    logEv('deliver', o.id, 'سلّمها للعميل' + (o.scrap ? (took ? '، والعميل أخد الفضلة' : '، والعميل ما أخد الفضلة') : ''));
+    if (o.scrap && !took) {
+      S.leftovers.push({ id:'L' + (++S.loSeq), w:o.scrap.w, h:o.scrap.h, color:o.color, from:`طلبية ${hid(o.id)}، ${o.client}`, at:Date.now(), status:'avail', oid:null });
+      logEv('loIn', o.id, `الفضلة ${sz(o.scrap)} دخلت قايمة الفضلات`, { who:SYS, auto:1 });
+    }
+  });
+};
+
+/* ---------- جوه الطلبية: التفاصيل والخط الزمني ---------- */
+const shortWho = w => w.startsWith('المشرف') ? 'المشرف' : w;
+function evText(e) { return e.auto ? `${e.txt} (تلقائي)` : `${shortWho(e.who)} ${e.txt}`; }
+function orderSummary(o) {
+  const ev = S.events.filter(e => e.oid === o.id && !e.undone);
+  const find = t => ev.find(e => e.type === t);
+  const assign = find('assign'), start = find('startCut');
+  const wait = assign ? ((start ? start.t : Date.now()) - assign.t) : 0;
+  if (o.readyAt) return `من التسجيل للجاهزة: ${fmtDur(o.readyAt - o.at)}${assign && start ? `، منهم ${fmtDur(wait)} بالدور` : ''}.`;
+  return `صرلها ${fmtDur(Date.now() - o.at)} من وقت التسجيل${assign ? `، منهم ${fmtDur(wait)} بالدور` : ''}${start ? '' : ''}.`;
+}
+function stageActions(o) {
+  const r = ROLE(); if (r.view) return '';
+  const b = [];
+  if (o.status === 'queue' && lineQueue(o.line)[0] === o && !o.blocked && !onCut(o.line)) b.push(`<button class="btn dark" data-act="startCut" data-id="${o.id}">${ic('cut')} ابدأ التقطيع</button>`);
+  if (o.status === 'cut') b.push(`<button class="btn dark" data-act="finishCut" data-id="${o.id}">${ic('check')} تمّ التقطيع</button>`);
+  if (o.status === 'sand') b.push(`<button class="btn dark" data-act="finishSand" data-id="${o.id}">${ic('check')} تمّ التقشيط</button>`);
+  if (o.status === 'ready') b.push(`<button class="btn dark" data-act="deliver" data-id="${o.id}">${ic('truck')} تسلّمت</button>`);
+  if (r.mgmt) {
+    if (o.status === 'new') b.push(`<button class="btn" data-act="assign" data-id="${o.id}" data-l="1">وزّع على خط 1</button><button class="btn" data-act="assign" data-id="${o.id}" data-l="2">وزّع على خط 2</button>`);
+    if (o.status === 'queue') b.push(`<button class="btn" data-act="urgent" data-id="${o.id}">${ic('bolt')} ${o.urgent ? 'شيل المستعجل' : 'مستعجلة'}</button>`);
+    if (o.blocked) b.push(`<button class="btn" data-act="clearBlock" data-id="${o.id}">${ic('check')} جاهزة للتقطيع</button>`);
+    b.push(`<button class="btn" data-act="copyMsg" data-id="${o.id}">${ic('copy')} انسخ رسالة الجروب</button>`);
+  }
+  return b.length ? `<div class="actions">${b.join('')}</div>` : '';
+}
+function openOrder(id) {
+  const o = byId(id); if (!o) return;
+  if (o.newNote && UI.role === 'sup') { o.newNote = false; save(); render(); }
+  const ev = S.events.filter(e => e.oid === o.id).sort((a, b) => a.t - b.t || a.n - b.n);
+  const r = ROLE();
+  openModal(`طلبية <span class="num">${hid(o.id)}</span> ${chip(o.status, o.status === 'ready' ? 'جاهزة، ركن ' + o.corner : null)}`, `
+    <div class="sumline" style="margin:0 0 12px;font-size:16px;background:#fff;border:1px solid var(--line)">${esc(sayStatus(o))}</div>
+    ${cardHTML(o).replace('data-act="open"', '')}
+    <dl class="kv" style="margin-top:12px">
+      <dt>اللون</dt><dd>${colorBadge(o.color)} ${esc(colorInfo(o.color)[1])}</dd>
+      <dt>الخط</dt><dd>${o.line ? 'خط ' + o.line : 'بعد ما توزّعت'}</dd>
+      ${o.notes ? `<dt>ملاحظات</dt><dd>${esc(o.notes)}</dd>` : ''}
+      ${o.status === 'done' && o.scrap ? `<dt>الفضلة</dt><dd>${o.tookLo ? 'العميل أخدها' : 'دخلت قايمة الفضلات'}</dd>` : ''}
+    </dl>
+    ${stageActions(o)}
+    <div class="sec-title">${ic('log')} الخط الزمني</div>
+    <ul class="timeline">${ev.map(e => `<li class="${e.auto ? 'auto' : ''} ${e.red ? 'red' : ''} ${e.undone ? 'undone' : ''}"><span class="tm">${fmtT(e.t)}</span>${esc(evText(e))}</li>`).join('')}</ul>
+    <div class="sumline">${orderSummary(o)}</div>
+    ${!r.view ? `<div class="row" style="margin-top:12px"><input class="inp grow" id="noteIn" placeholder="اكتب ملاحظة (قطعة انكسرت، العميل غيّر شي...)"><button class="btn dark" data-act="addNote" data-id="${o.id}">${ic('note')} ضيف</button></div>` : ''}`);
+}
+ACT.addNote = d => {
+  const o = byId(d.id), inp = document.getElementById('noteIn'); if (!o || !inp) return;
+  const t = inp.value.trim(); if (!t) { inp.focus(); return; }
+  logEv('note', o.id, 'كتب ملاحظة: ' + t);
+  if (o.status === 'queue' && UI.role !== 'sup') o.newNote = true;
+  commit(); openOrder(o.id); toast('الملاحظة تسجّلت');
+};
+
+/* ---------- ملخص الأسبوع ---------- */
+const DAYS = ['الاثنين', 'التلاتا', 'الأربعا', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
+function weekStats() {
+  const W = S.week, ws = weekStart();
+  const live = S.events.filter(e => e.live && !e.undone && e.t >= ws);
+  const readyEv = live.filter(e => e.type === 'finishSand' || e.type === 'readyNoSand');
+  const daily = W.daily.slice(); daily[daily.length - 1] += readyEv.length;
+  const done = daily.reduce((a, b) => a + b, 0);
+  const lastTo = W.lastDaily.slice(0, daily.length).reduce((a, b) => a + b, 0);
+  let sumH = W.avgH * W.avgN, n = W.avgN;
+  readyEv.forEach(e => { const o = byId(e.oid); if (o) { sumH += (e.t - o.at) / H; n++; } });
+  const lines = JSON.parse(JSON.stringify(W.lines));
+  readyEv.forEach(e => { if (lines[e.line]) { lines[e.line].o++; lines[e.line].s += e.sheets || 0; } });
+  const loUsed = W.loUsed + live.filter(e => e.type === 'loReserve').length;
+  const liveReps = S.reports.filter(r => r.live && r.t >= ws && !S.events.some(e => e.undone && e.type === 'report' && e.oid === r.oid && Math.abs(e.t - r.t) < 1000));
+  const reasons = Object.assign({}, W.reasons);
+  liveReps.forEach(r => reasons[r.reason] = (reasons[r.reason] || 0) + 1);
+  const top = Object.entries(reasons).sort((a, b) => b[1] - a[1])[0];
+  const downMin = W.downMin + liveReps.reduce((a, r) => a + Math.round(((r.res ? r.res.t : Date.now()) - r.t) / MIN), 0);
+  return { daily, done, lastTo, avgH: sumH / n, lines, loUsed, reports: W.reports + liveReps.length, top, downMin, stageH: W.stageH };
+}
+/* بعد "ابدأ فاضي": كل الأرقام من الحركات الحقيقية بس، من يوم ما بدأنا */
+function realStats() {
+  const ev = S.events.filter(e => !e.undone);
+  const readyEv = ev.filter(e => e.type === 'finishSand' || e.type === 'readyNoSand');
+  const first = (oid, type) => ev.find(e => e.oid === oid && e.type === type);
+  let sumH = 0, n = 0;
+  readyEv.forEach(e => { const o = byId(e.oid); if (o) { sumH += (e.t - o.at) / H; n++; } });
+  const st = { queue:[], cut:[], waitsand:[], sand:[] };
+  [...new Set(ev.map(e => e.oid).filter(Boolean))].forEach(id => {
+    const a = first(id, 'assign'), sc = first(id, 'startCut'), fc = first(id, 'finishCut'), wt = first(id, 'waitSand'), es = first(id, 'enterSand'), fs = first(id, 'finishSand');
+    if (a && sc) st.queue.push(sc.t - a.t);
+    if (sc && fc) st.cut.push(fc.t - sc.t);
+    if (wt && es) st.waitsand.push(es.t - wt.t);
+    if (es && fs) st.sand.push(fs.t - es.t);
+  });
+  const stageH = {};
+  Object.entries(st).forEach(([k, v]) => { if (v.length) stageH[k] = v.reduce((a, b) => a + b, 0) / v.length / H; });
+  const lines = { 1:{ o:0, s:0 }, 2:{ o:0, s:0 } };
+  readyEv.forEach(e => { if (lines[e.line]) { lines[e.line].o++; lines[e.line].s += e.sheets || 0; } });
+  const reasons = {};
+  S.reports.forEach(r => reasons[r.reason] = (reasons[r.reason] || 0) + 1);
+  const top = Object.entries(reasons).sort((a, b) => b[1] - a[1])[0];
+  const downMin = S.reports.reduce((a, r) => a + Math.round(((r.res ? r.res.t : Date.now()) - r.t) / MIN), 0);
+  // كل يوم: من يوم ما بدأنا، آخر 7 أيام بالكتير
+  const today = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
+  const startDay = Date.UTC(new Date(S.startedAt).getUTCFullYear(), new Date(S.startedAt).getUTCMonth(), new Date(S.startedAt).getUTCDate());
+  const days = [];
+  for (let d = Math.max(startDay, today - 6 * DAY); d <= today; d += DAY) days.push({ d, v: readyEv.filter(e => e.t >= d && e.t < d + DAY).length });
+  return { done:readyEv.length, doneWeek:readyEv.filter(e => e.t >= weekStart()).length, avgH: n ? sumH / n : null, stageH, lines,
+    loUsed: ev.filter(e => e.type === 'loReserve').length, reports:S.reports.length, top, downMin, days };
+}
+function weekReal() {
+  const w = realStats(), r = ROLE();
+  const stN = { queue:['الانتظار بالدور', 'queue'], cut:['التقطيع', 'cut'], waitsand:['مستنية تقشيط', 'waitsand'], sand:['التقشيط', 'sand'] };
+  const stE = Object.entries(w.stageH);
+  const maxS = Math.max(...stE.map(x => x[1]), 0.01);
+  const longest = stE.sort((a, b) => b[1] - a[1])[0];
+  const maxD = Math.max(...w.days.map(x => x.v), 1);
+  const lmax = Math.max(w.lines[1].o, w.lines[2].o, 1);
+  const none = '<div class="muted small">بعد ما في أرقام كفاية</div>';
+  const h = `
+    <div class="muted small">من يوم ما بدأنا (${fmtDay(S.startedAt)}) لهلّق · الأرقام بتتجمّع لحالها من الزراير</div>
+    <div class="kpis">
+      <div class="kpi"><div class="l">طلبيات خلصت</div><div class="v num">${w.done}</div><div class="s">من يوم ما بدأنا · هالأسبوع: <span class="num">${w.doneWeek}</span></div></div>
+      <div class="kpi"><div class="l">متوسط وقت الطلبية</div><div class="v">${w.avgH == null ? '—' : `<span class="num">${w.avgH.toFixed(1)}</span> <small>ساعة</small>`}</div><div class="s">من التسجيل لحد جاهزة</div></div>
+      <div class="kpi hero"><div class="l">فضلات انستعملت</div><div class="v num" style="color:var(--accent)">${w.loUsed}</div><div class="s">فضل دخلت طلبيات بدل ما تنرمى</div></div>
+      <div class="kpi warn"><div class="l">وقت وقوف المكنة</div><div class="v"><span class="num">${w.downMin}</span> <small>دقيقة</small></div><div class="s">من البلاغ لحد ما الإدارة ردّت</div></div>
+    </div>
+    <section class="panel"><h2>${ic('chart')} طلبيات خلصت كل يوم</h2>
+      <div class="bars" role="img" aria-label="طلبيات خلصت كل يوم">${w.days.map((x, i) => `<div class="b${i === w.days.length - 1 ? ' today' : ''}"><em class="num">${x.v}</em><i style="height:${Math.round(x.v / maxD * 100)}%"></i><span>${DAYS[(new Date(x.d).getUTCDay() + 6) % 7]}</span></div>`).join('')}</div>
+    </section>
+    <section class="panel"><h2>${ic('log')} أطول مرحلة${longest ? `: <span style="color:#2563eb">${stN[longest[0]][0]}</span>` : ''}</h2>
+      ${Object.keys(stN).filter(k => w.stageH[k] != null).map(k => `<div class="hbar st-${stN[k][1]}"><span>${stN[k][0]}</span><span class="t"><i style="width:${Math.round(w.stageH[k] / maxS * 100)}%"></i></span><span class="val"><span class="num">${w.stageH[k].toFixed(1)}</span> س</span></div>`).join('') || none}
+      <div class="muted small">متوسط الساعات يلّي بتقضّيها الطلبية بكل مرحلة</div>
+    </section>
+    <section class="panel"><h2>${ic('line')} شغل كل خط</h2>
+      ${[1, 2].map(l => `<div class="hbar st-queue" style="grid-template-columns:56px 1fr 130px"><b>خط ${l}</b><span class="t"><i style="width:${Math.round(w.lines[l].o / lmax * 100)}%;background:${l === 1 ? '#1f2937' : '#64748b'}"></i></span><span class="val"><span class="num">${w.lines[l].o}</span> طلبية · <span class="num">${w.lines[l].s}</span> لوح</span></div>`).join('')}
+    </section>
+    <section class="panel"><h2 style="color:var(--red)">${ic('alert')} بلاغات "مش جاهزة"</h2>
+      <div class="row"><div class="v num" style="font-size:30px;font-weight:700">${w.reports}</div><div class="grow small">أكتر سبب: <b>${esc(w.top ? w.top[0] : '—')}</b> (${w.top ? w.top[1] : 0} مرات)</div></div>
+    </section>
+    ${r.mgmt || r.view ? `<button class="btn" data-act="tab" data-t="log" style="align-self:flex-start">${ic('log')} سجل النشاط العام ←</button>` : ''}`;
+  return r.desk ? `<div class="wide">${h}</div>` : h;
+}
+SCREENS.week = () => {
+  if (!S.week) return weekReal();
+  const w = weekStats(), r = ROLE();
+  const diff = w.lastTo ? Math.round((w.done - w.lastTo) / w.lastTo * 100) : 0;
+  const maxD = Math.max(...w.daily, ...S.week.lastDaily, 1);
+  const stN = { queue:['الانتظار بالدور', 'queue'], cut:['التقطيع', 'cut'], waitsand:['مستنية تقشيط', 'waitsand'], sand:['التقشيط', 'sand'] };
+  const maxS = Math.max(...Object.values(w.stageH));
+  const longest = Object.entries(w.stageH).sort((a, b) => b[1] - a[1])[0][0];
+  const lmax = Math.max(w.lines[1].o, w.lines[2].o, 1);
+  const h = `
+    <div class="muted small">الأسبوع من الاثنين ${fmtDay(weekStart())} لهلّق · الأرقام بتتجمّع لحالها من الزراير</div>
+    <div class="kpis">
+      <div class="kpi"><div class="l">طلبيات خلصت</div><div class="v num">${w.done}</div><div class="s">${diff >= 0 ? `<span class="up">▲ ${diff}%</span>` : `<span>▼ ${-diff}%</span>`} عن نفس الوقت الأسبوع يلّي فات (${w.lastTo})</div></div>
+      <div class="kpi"><div class="l">متوسط وقت الطلبية</div><div class="v"><span class="num">${w.avgH.toFixed(1)}</span> <small>ساعة</small></div><div class="s">من التسجيل لحد جاهزة</div></div>
+      <div class="kpi hero"><div class="l">فضلات انستعملت</div><div class="v num" style="color:var(--accent)">${w.loUsed}</div><div class="s">فضل دخلت طلبيات بدل ما تنرمى</div></div>
+      <div class="kpi warn"><div class="l">وقت وقوف المكنة</div><div class="v"><span class="num">${w.downMin}</span> <small>دقيقة</small></div><div class="s">من البلاغ لحد ما الإدارة ردّت</div></div>
+    </div>
+    <section class="panel"><h2>${ic('chart')} طلبيات خلصت كل يوم</h2>
+      <div class="bars" role="img" aria-label="طلبيات خلصت كل يوم">${w.daily.map((v, i) => `<div class="b${i === w.daily.length - 1 ? ' today' : ''}"><em class="num">${v}</em><i style="height:${Math.round(v / maxD * 100)}%"></i><span>${DAYS[i]}</span></div>`).join('')}</div>
+    </section>
+    <section class="panel"><h2>${ic('log')} أطول مرحلة: <span style="color:var(--st-q,#2563eb)">${stN[longest][0]}</span></h2>
+      ${Object.entries(w.stageH).map(([k, v]) => `<div class="hbar st-${stN[k][1]}"><span>${stN[k][0]}</span><span class="t"><i style="width:${Math.round(v / maxS * 100)}%"></i></span><span class="val"><span class="num">${v.toFixed(1)}</span> س</span></div>`).join('')}
+      <div class="muted small">متوسط الساعات يلّي بتقضّيها الطلبية بكل مرحلة</div>
+    </section>
+    <section class="panel"><h2>${ic('line')} شغل كل خط</h2>
+      ${[1, 2].map(l => `<div class="hbar st-queue" style="grid-template-columns:56px 1fr 130px"><b>خط ${l}</b><span class="t"><i style="width:${Math.round(w.lines[l].o / lmax * 100)}%;background:${l === 1 ? '#1f2937' : '#64748b'}"></i></span><span class="val"><span class="num">${w.lines[l].o}</span> طلبية · <span class="num">${w.lines[l].s}</span> لوح</span></div>`).join('')}
+    </section>
+    <section class="panel"><h2 style="color:var(--red)">${ic('alert')} بلاغات "مش جاهزة"</h2>
+      <div class="row"><div class="v num" style="font-size:30px;font-weight:700">${w.reports}</div><div class="grow small">أكتر سبب: <b>${esc(w.top ? w.top[0] : '—')}</b> (${w.top ? w.top[1] : 0} مرات)</div></div>
+    </section>
+    ${r.mgmt || r.view ? `<button class="btn" data-act="tab" data-t="log" style="align-self:flex-start">${ic('log')} سجل النشاط العام ←</button>` : ''}`;
+  return r.desk ? `<div class="wide">${h}</div>` : h;
+};
+
+/* ---------- سجل النشاط العام ---------- */
+const LOGF = { all:['الكل', null], stages:['المراحل', ['startCut', 'finishCut', 'waitSand', 'enterSand', 'finishSand', 'readyNoSand', 'deliver', 'undo', 'glueStart', 'glueDone']], reports:['البلاغات', ['report', 'promote', 'clear']], queue:['التوزيع والترتيب', ['create', 'assign', 'moveLine', 'reorder', 'urgent', 'unurgent', 'copy']], lo:['الفضلات', ['loReserve', 'loAdd', 'loUsed', 'loIn']], notes:['الملاحظات', ['note']] };
+SCREENS.log = () => {
+  const f = LOGF[UI.logFilter] || LOGF.all;
+  const list = S.events.filter(e => !f[1] || f[1].includes(e.type)).sort((a, b) => b.t - a.t || b.n - a.n).slice(0, 200);
+  const h = `${!ROLE().desk ? `<button class="btn sm" data-act="tab" data-t="week" style="align-self:flex-start">→ رجوع للأسبوع</button>` : ''}
+    <div class="muted small">كل حركة بالمكان، الأحدث فوق. ما بيتعدّلش وما بيتمسحش.</div>
+    <div class="filters">${Object.entries(LOGF).map(([k, v]) => `<button class="fbtn${UI.logFilter === k ? ' on' : ''}" data-act="logFilter" data-v="${k}">${v[0]}</button>`).join('')}</div>
+    <div class="panel" style="padding:4px 14px">${list.map(e => { const o = e.oid && byId(e.oid); return `<div class="logrow${e.undone ? ' undone' : ''}"><span class="tm">${fmtT(e.t)}</span><span class="grow"><b>${esc(e.auto ? SYS : e.who)}</b> ${esc(e.txt)}${o ? ` · <a href="#" data-act="open" data-id="${o.id}" style="color:inherit"><span class="num">${hid(o.id)}</span> ${esc(o.client)}</a>` : ''}${e.auto ? '<span class="src">تلقائي</span>' : ''}${e.red ? ` <span style="color:var(--red)">${ic('alert')}</span>` : ''}</span></div>`; }).join('') || '<div class="empty" style="margin:10px 0">ما في شي</div>'}</div>`;
+  return ROLE().desk ? `<div class="wide">${h}</div>` : h;
+};
+ACT.logFilter = d => { UI.logFilter = d.v; render(); };
+
+/* ---------- تشغيل ---------- */
+window.addEventListener('storage', e => { if (e.key === KEY && e.newValue) { try { S = JSON.parse(e.newValue); } catch (x) { return; } render(); onRoleEnter(); } });
+load();
+render();
+/* كل دقيقة: نحدّث "مستنية من..." بس لو ما في مودال مفتوح وما حدا عم يكتب */
+setInterval(() => {
+  const a = document.activeElement;
+  if ($modal.classList.contains('show') || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) return;
+  if (S.orders.some(o => o.status === 'waitsand')) render();
+}, 60000);
+</script>
+</body>
+</html>
